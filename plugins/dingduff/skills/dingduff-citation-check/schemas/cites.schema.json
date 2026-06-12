@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dingduff.com/schemas/cite-check/cites.schema.json",
+  "title": "DingDuff cite-check verification output (cites.json), schema v1",
+  "description": "Machine-verified citation anchors for a legal memo. All offsets are Unicode codepoint indices (Python str indices) into the referenced file's content decoded from UTF-8 bytes with no newline translation. Every anchors[].quote equals the raw slice raw[start:end] of its source file, making the file self-validating.",
+  "type": "object",
+  "required": ["schema_version", "memo", "sources", "citations"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "memo": {
+      "type": "object",
+      "required": ["path", "sha256", "generated_at", "generated_by"],
+      "properties": {
+        "path": { "type": "string", "description": "Project-root-relative path to the memo." },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "SHA-256 of the memo file's raw bytes. Consumers must refuse to render highlights when this no longer matches." },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "generated_by": { "type": "string" }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "description": "Deduplicated map of cited source documents. Keys: 'cl-{cluster_id}' for opinions, 'stat-{filename stem}' for statutes.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": { "enum": ["opinion", "statute"] },
+          "path": { "type": ["string", "null"], "description": "Project-root-relative path to the stored markdown file. Null only when missing=true." },
+          "sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$", "description": "SHA-256 of the source file's raw bytes. Null only when missing=true." },
+          "missing": { "type": "boolean", "description": "True when the cited authority had no stored file and the user declined to fetch it; its citations carry status=anchor_failed, failure_reason=source_missing." },
+          "cluster_id": { "type": ["string", "integer"], "description": "CourtListener cluster id (opinions). Used by viewers to re-fetch the document." },
+          "case_name": { "type": "string" },
+          "citation": { "type": "string", "description": "Reporter citation, e.g. '384 U.S. 436'." },
+          "statute_id": { "type": "string", "description": "DingDuff statute identifier '[jurisdiction]/[code]/[section]', e.g. 'US/18-usc/1001'. Used by viewers to re-fetch the document." },
+          "code": { "type": "string" },
+          "section": { "type": "string" },
+          "jurisdiction": { "type": "string" }
+        }
+      }
+    },
+    "citations": {
+      "type": "array",
+      "description": "One entry per citation INSTANCE in the memo (the same case cited five times yields five entries).",
+      "items": {
+        "type": "object",
+        "required": ["id", "source", "cite_text", "memo_anchor", "proposition", "support_type", "anchors", "status"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^c\\d{3,}$" },
+          "source": { "type": "string", "description": "Key into sources." },
+          "cite_text": { "type": "string", "description": "The citation exactly as it appears in the memo (including Id./supra short forms)." },
+          "pin": { "type": "string", "description": "Pin cite page, if present. Not machine-verified in v1; the wrong_pin review verdict exists for this." },
+          "memo_anchor": {
+            "type": ["object", "null"],
+            "description": "Codepoint span of cite_text within the memo. Null when anchoring failed.",
+            "required": ["start", "end"],
+            "properties": {
+              "start": { "type": "integer", "minimum": 0 },
+              "end": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "proposition": { "type": "string", "description": "The claim this citation is offered to support — what the attorney verifies." },
+          "support_type": { "enum": ["quotation", "paraphrase"] },
+          "anchors": {
+            "type": "array",
+            "description": "Verified supporting passages in the source file. An ellipsis quote yields one anchor per segment.",
+            "items": {
+              "type": "object",
+              "required": ["quote", "start", "end", "match"],
+              "properties": {
+                "quote": { "type": "string", "description": "The raw slice source_raw[start:end] — exactly what a viewer should highlight or re-locate." },
+                "start": { "type": "integer", "minimum": 0 },
+                "end": { "type": "integer", "minimum": 0 },
+                "match": { "enum": ["exact", "normalized"] }
+              }
+            }
+          },
+          "status": { "enum": ["anchored", "anchor_failed", "no_quote_claimed"] },
+          "binds_to": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "SHA-256 of cite_text + \"\\u0000\" + proposition. review.json verdicts bind to this value; a mismatch marks the verdict stale." },
+          "failure_reason": {
+            "enum": ["not_found", "case_mismatch", "only_in_citing_cases", "ambiguous_in_memo", "memo_context_not_found", "cite_text_not_in_context", "segment_too_short", "ellipsis_gap_too_large", "source_missing"],
+            "description": "Present only when status=anchor_failed."
+          }
+        }
+      }
+    }
+  }
+}

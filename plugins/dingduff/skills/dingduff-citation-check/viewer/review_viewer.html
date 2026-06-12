@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DingDuff Cite-Check Review</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --pane: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e2ded6;
+    --accent: #1f4e8c;
+    --green: #1e7d3e;
+    --green-bg: #e8f5ec;
+    --red: #b3261e;
+    --red-bg: #fdecea;
+    --amber: #9a6700;
+    --amber-bg: #fff4d6;
+    --gray-bg: #f0efec;
+    --hl: #fff3b0;
+    --hl-current: #ffd66e;
+    font-size: 15px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  header#topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--pane);
+    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto;
+  }
+  .brand { font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .brand span { font-weight: 400; color: var(--muted); }
+  #memo-name {
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
+    font-size: 0.92em;
+  }
+  .chip {
+    background: var(--gray-bg);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 0.85em;
+    white-space: nowrap;
+  }
+  #reviewer {
+    width: 180px;
+    padding: 5px 8px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 0.9em;
+  }
+  button {
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--pane);
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #banner {
+    background: var(--red-bg);
+    color: var(--red);
+    border-bottom: 1px solid var(--red);
+    padding: 8px 16px;
+    font-size: 0.92em;
+  }
+  #chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px 16px;
+    background: var(--pane);
+    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto;
+  }
+  .cite-chip {
+    font-size: 0.8em;
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--gray-bg);
+    cursor: pointer;
+    user-select: none;
+  }
+  .cite-chip.failed { border-color: var(--red); color: var(--red); }
+  .cite-chip.noquote { color: var(--muted); border-style: dotted; }
+  .cite-chip.current { outline: 2px solid var(--accent); }
+  .cite-chip.v-verified { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .cite-chip.v-rejected, .cite-chip.v-misquoted { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .cite-chip.v-wrong_pin { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  main {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+    min-height: 0;
+  }
+  section { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  #memo-pane { border-right: 1px solid var(--line); }
+  .pane-head {
+    padding: 8px 16px;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    background: var(--pane);
+    border-bottom: 1px solid var(--line);
+    flex: 0 0 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .doc {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px 24px 60vh;
+    background: var(--pane);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.02em;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
+  .doc .notice {
+    font-family: inherit;
+    background: var(--gray-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--muted);
+    white-space: normal;
+    margin-bottom: 14px;
+  }
+  .doc .notice.warn { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  a.cite {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+  a.cite.failed { color: var(--red); text-decoration-style: dashed; }
+  a.cite.noquote { color: var(--muted); text-decoration-style: dotted; }
+  a.cite.current { background: #e7eefb; outline: 1px solid var(--accent); border-radius: 2px; }
+  a.cite.v-verified { background: var(--green-bg); }
+  a.cite.v-rejected, a.cite.v-misquoted { background: var(--red-bg); }
+  a.cite.v-wrong_pin { background: var(--amber-bg); }
+  mark { background: var(--hl); padding: 0; border-radius: 2px; }
+  mark.current { background: var(--hl-current); outline: 1px solid var(--amber); }
+  #card {
+    flex: 0 0 auto;
+    background: var(--pane);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 16px;
+    max-height: 45%;
+    overflow-y: auto;
+  }
+  #card .row1 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #card .cid { font-weight: 700; color: var(--accent); }
+  .badge {
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge.anchored { background: var(--green-bg); color: var(--green); }
+  .badge.anchor_failed { background: var(--red-bg); color: var(--red); }
+  .badge.no_quote_claimed { background: var(--gray-bg); color: var(--muted); }
+  .badge.match { background: var(--gray-bg); color: var(--muted); text-transform: none; }
+  #card .cite-text { font-family: Georgia, serif; margin: 8px 0 2px; }
+  #card .prop { color: var(--ink); margin: 6px 0; }
+  #card .prop b { color: var(--muted); font-weight: 600; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.04em; }
+  #card .meta { color: var(--muted); font-size: 0.85em; }
+  #card .fail-note, #card .stale-note {
+    background: var(--red-bg); color: var(--red);
+    border-radius: 6px; padding: 8px 10px; margin: 8px 0; font-size: 0.9em;
+  }
+  #card .stale-note { background: var(--amber-bg); color: var(--amber); }
+  #verdicts { display: flex; gap: 8px; margin: 10px 0 6px; flex-wrap: wrap; align-items: center; }
+  #verdicts button { font-size: 0.88em; }
+  #verdicts button.on-verified { background: var(--green); border-color: var(--green); color: #fff; }
+  #verdicts button.on-rejected, #verdicts button.on-misquoted { background: var(--red); border-color: var(--red); color: #fff; }
+  #verdicts button.on-wrong_pin { background: var(--amber); border-color: var(--amber); color: #fff; }
+  #nav-btns { margin-left: auto; display: flex; gap: 6px; }
+  #note {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 0.9em;
+    resize: vertical;
+  }
+  #footer {
+    flex: 0 0 auto;
+    padding: 4px 16px;
+    font-size: 0.78em;
+    color: var(--muted);
+    background: var(--pane);
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 16px;
+  }
+  #mcp-waiting {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    text-align: center;
+    padding: 40px;
+  }
+  kbd {
+    background: var(--gray-bg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0 5px;
+    font-size: 0.85em;
+  }
+</style>
+</head>
+<body>
+<header id="topbar" hidden>
+  <div class="brand">DingDuff <span>Cite-Check</span></div>
+  <div id="memo-name"></div>
+  <div id="progress" class="chip"></div>
+  <input id="reviewer" placeholder="Reviewer (initials/email)" autocomplete="off">
+  <button id="import-btn" title="Import a previously exported review.json">Import</button>
+  <input type="file" id="import-file" accept="application/json,.json" hidden>
+  <button id="export-btn" class="primary">Export review.json</button>
+</header>
+<div id="banner" hidden></div>
+<div id="chips" hidden></div>
+<main hidden id="main">
+  <section id="memo-pane">
+    <div class="pane-head" id="memo-head">Memo</div>
+    <div id="memo-body" class="doc"></div>
+  </section>
+  <section id="right-pane">
+    <div id="card" hidden>
+      <div class="row1">
+        <span class="cid" id="card-cid"></span>
+        <span class="badge" id="card-status"></span>
+        <span class="badge match" id="card-match" hidden></span>
+        <span class="meta" id="card-meta"></span>
+        <span id="nav-btns">
+          <button id="prev-btn" title="Previous citation (k)">↑ prev</button>
+          <button id="next-btn" title="Next citation (j)">↓ next</button>
+        </span>
+      </div>
+      <div class="cite-text" id="card-cite"></div>
+      <div class="prop"><b>Offered for:</b> <span id="card-prop"></span></div>
+      <div class="fail-note" id="card-fail" hidden></div>
+      <div class="stale-note" id="card-stale" hidden></div>
+      <div id="verdicts">
+        <button data-verdict="verified" title="Shortcut: 1">✓ Verified</button>
+        <button data-verdict="rejected" title="Shortcut: 2">✗ Rejected</button>
+        <button data-verdict="misquoted" title="Shortcut: 3">≠ Misquoted</button>
+        <button data-verdict="wrong_pin" title="Shortcut: 4">⌖ Wrong pin</button>
+      </div>
+      <textarea id="note" placeholder="Reviewer note (optional)"></textarea>
+    </div>
+    <div class="pane-head" id="source-head">Source</div>
+    <div id="source-body" class="doc"></div>
+  </section>
+</main>
+<div id="footer" hidden>
+  <span>Keyboard: <kbd>j</kbd>/<kbd>k</kbd> next/prev · <kbd>1</kbd>–<kbd>4</kbd> verdicts</span>
+  <span id="anchor-counter"></span>
+  <span id="mode-label"></span>
+</div>
+<div id="mcp-waiting" hidden>
+  <div>
+    <p><strong>DingDuff Cite-Check Review</strong></p>
+    <p>Waiting for the Claude host to deliver review data…</p>
+    <p>This panel runs inside Claude as an MCP App, or as a standalone bundle
+       generated by <code>build_review.py</code>.</p>
+  </div>
+</div>
+
+<script id="citecheck-payload" type="application/json">/*__CITECHECK_PAYLOAD__*/</script>
+<script>
+(function () {
+  "use strict";
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ------------------------------------------------------------------
+  // Boot: decide payload source (standalone bundle vs MCP host bridge)
+  // ------------------------------------------------------------------
+  function boot() {
+    var payload = null;
+    try { payload = JSON.parse($("citecheck-payload").textContent); } catch (e) {}
+    if (payload && payload.mode === "standalone") {
+      startApp(makeStandaloneSource(payload));
+    } else {
+      // MCP App mode: no embedded payload — data arrives over the host
+      // bridge (ui/initialize handshake, then ui/notifications/tool-input).
+      $("mcp-waiting").hidden = false;
+      initMcp();
+    }
+  }
+
+  function makeStandaloneSource(p) {
+    return {
+      mode: "standalone",
+      cites: p.cites,
+      memoDoc: p.memo_doc,
+      binds: p.binds || {},
+      build: p.build || { forced: false, mismatches: [] },
+      priorReview: p.prior_review || null,
+      getSourceDoc: function (key) {
+        return Promise.resolve(p.source_docs[key] ||
+          { segments: null, checksum_ok: null, missing: true });
+      },
+      sendReview: null  // standalone: download/clipboard only
+    };
+  }
+
+  // ------------------------------------------------------------------
+  // Application
+  // ------------------------------------------------------------------
+  var src = null;           // payload source
+  var citations = [];       // ordered citation entries
+  var byId = {};            // cid -> citation
+  var verdicts = {};        // cid -> {verdict, note, reviewer, at, binds_to}
+  var staleReviews = {};    // cid -> imported-but-stale entry
+  var current = null;       // selected cid
+  var memoLinks = {};       // cid -> [<a>]
+  var chipEls = {};         // cid -> chip element
+  var sourceCache = {};     // source key -> rendered container
+  var anchorEls = {};       // "cid:i" -> [<mark>] (current source only)
+  var storageKey = null;
+
+  function startApp(payloadSource) {
+    src = payloadSource;
+    citations = src.cites.citations;
+    citations.forEach(function (c) { byId[c.id] = c; });
+    storageKey = "citecheck:" + src.cites.memo.sha256;
+
+    $("mcp-waiting").hidden = true;
+    $("topbar").hidden = false;
+    $("chips").hidden = false;
+    $("main").hidden = false;
+    $("footer").hidden = false;
+    $("mode-label").textContent = "mode: " + src.mode;
+    if (src.sendReview) { $("export-btn").textContent = "Send review to Claude"; }
+
+    loadLocal();
+    if (src.priorReview) { applyImportedReview(src.priorReview, false); }
+
+    $("memo-name").textContent = src.cites.memo.path;
+    $("memo-head").textContent = "Memo — " + src.cites.memo.path;
+
+    if (src.build.forced && src.build.mismatches.length) {
+      var b = $("banner");
+      b.hidden = false;
+      b.textContent = "⚠ Files changed since verification — highlights are " +
+        "suppressed for: " + src.build.mismatches.join(", ") +
+        ". Re-run /cite-check for a trustworthy review.";
+    }
+
+    renderMemo();
+    renderChips();
+    updateProgress();
+    wireControls();
+    if (citations.length) { select(citations[0].id, true); }
+  }
+
+  // ---------------- rendering: memo ----------------
+  function renderMemo() {
+    var body = $("memo-body");
+    body.replaceChildren();
+    memoLinks = {};
+    if (src.memoDoc.checksum_ok === false) {
+      var n = document.createElement("div");
+      n.className = "notice warn";
+      n.textContent = "The memo changed since verification; citation links are disabled.";
+      body.appendChild(n);
+    }
+    src.memoDoc.segments.forEach(function (seg) {
+      if (!seg.marks || !seg.marks.length) {
+        body.appendChild(document.createTextNode(seg.text));
+        return;
+      }
+      var cid = seg.marks[0];
+      var a = document.createElement("a");
+      a.className = "cite";
+      a.textContent = seg.text;
+      a.dataset.cid = cid;
+      a.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        select(cid, false);
+      });
+      (memoLinks[cid] = memoLinks[cid] || []).push(a);
+      body.appendChild(a);
+    });
+    citations.forEach(function (c) { styleCite(c.id); });
+  }
+
+  function renderChips() {
+    var bar = $("chips");
+    bar.replaceChildren();
+    chipEls = {};
+    citations.forEach(function (c) {
+      var chip = document.createElement("span");
+      chip.className = "cite-chip";
+      chip.textContent = c.id;
+      chip.title = c.cite_text;
+      chip.addEventListener("click", function () { select(c.id, true); });
+      chipEls[c.id] = chip;
+      bar.appendChild(chip);
+      styleCite(c.id);
+    });
+  }
+
+  function styleCite(cid) {
+    var c = byId[cid];
+    var v = verdicts[cid];
+    var statusClass = c.status === "anchor_failed" ? "failed"
+                    : c.status === "no_quote_claimed" ? "noquote" : "";
+    var classes = ["cite"];
+    if (statusClass) classes.push(statusClass);
+    if (cid === current) classes.push("current");
+    if (v) classes.push("v-" + v.verdict);
+    (memoLinks[cid] || []).forEach(function (a) { a.className = classes.join(" "); });
+    var chip = chipEls[cid];
+    if (chip) {
+      var cc = ["cite-chip"];
+      if (statusClass) cc.push(statusClass);
+      if (cid === current) cc.push("current");
+      if (v) cc.push("v-" + v.verdict);
+      chip.className = cc.join(" ");
+    }
+  }
+
+  // ---------------- rendering: source pane ----------------
+  function renderSource(key, focusCid) {
+    var body = $("source-body");
+    var meta = src.cites.sources[key] || {};
+    var label = meta.case_name || meta.citation || key;
+    $("source-head").textContent = "Source — " + label +
+      (meta.path ? " (" + meta.path + ")" : "");
+    body.replaceChildren();
+    anchorEls = {};
+
+    var done = function (entry) {
+      anchorEls = entry.anchors;
+      body.appendChild(entry.el);
+      emphasizeAnchors(focusCid);
+    };
+
+    if (sourceCache[key]) { done(sourceCache[key]); return; }
+
+    src.getSourceDoc(key).then(function (doc) {
+      var container = document.createElement("div");
+      var anchors = {};
+      if (!doc || doc.missing || !doc.segments) {
+        var n = document.createElement("div");
+        n.className = "notice warn";
+        n.textContent = "No stored copy of this source is available. The cited " +
+          "authority could not be verified — obtain the source and re-run /cite-check.";
+        container.appendChild(n);
+      } else {
+        if (doc.checksum_ok === false) {
+          var w = document.createElement("div");
+          w.className = "notice warn";
+          w.textContent = "This file changed since verification — highlights are suppressed.";
+          container.appendChild(w);
+        }
+        if (doc.reanchored) {
+          var r = document.createElement("div");
+          r.className = "notice";
+          r.textContent = "Highlights were re-located in a freshly fetched copy of " +
+            "this source. Verification was performed against your stored file.";
+          container.appendChild(r);
+        }
+        (doc.unlocated || []).forEach(function (u) {
+          var x = document.createElement("div");
+          x.className = "notice warn";
+          var head = document.createElement("strong");
+          head.textContent = u.cid + ": verified passage not re-located in this fetched copy — ";
+          x.appendChild(head);
+          var q = document.createElement("em");
+          q.textContent = "“" + u.quote + "”";
+          x.appendChild(q);
+          container.appendChild(x);
+        });
+        doc.segments.forEach(function (seg) {
+          if (!seg.marks || !seg.marks.length) {
+            container.appendChild(document.createTextNode(seg.text));
+            return;
+          }
+          var m = document.createElement("mark");
+          m.textContent = seg.text;
+          m.dataset.marks = seg.marks.join(" ");
+          seg.marks.forEach(function (mk) {
+            (anchors[mk] = anchors[mk] || []).push(m);
+          });
+          container.appendChild(m);
+        });
+      }
+      sourceCache[key] = { el: container, anchors: anchors };
+      done(sourceCache[key]);
+    }, function (err) {
+      var container = document.createElement("div");
+      var n = document.createElement("div");
+      n.className = "notice warn";
+      n.textContent = "Could not load this source: " + (err && err.message || err);
+      container.appendChild(n);
+      done({ el: container, anchors: {} });
+    });
+  }
+
+  // Scroll an element to the vertical center of its scrollable pane WITHOUT
+  // scrollIntoView, which would also scroll overflow:hidden ancestors and
+  // shift the whole app inside its iframe/page.
+  function scrollToInPane(pane, el) {
+    var pr = pane.getBoundingClientRect();
+    var er = el.getBoundingClientRect();
+    pane.scrollTop += (er.top - pr.top) - pane.clientHeight / 2 + er.height / 2;
+  }
+
+  function emphasizeAnchors(cid) {
+    anchorEls = anchorEls || {};
+    var firstMark = null;
+    Object.keys(anchorEls).forEach(function (mk) {
+      var isCurrent = mk.indexOf(cid + ":") === 0;
+      anchorEls[mk].forEach(function (el) {
+        el.className = isCurrent ? "current" : "";
+        if (isCurrent && !firstMark) { firstMark = el; }
+      });
+    });
+    if (firstMark) {
+      scrollToInPane($("source-body"), firstMark);
+    } else {
+      $("source-body").scrollTop = 0;
+    }
+    updateAnchorCounter();
+  }
+
+  function updateAnchorCounter() {
+    var total = 0, located = 0;
+    citations.forEach(function (c) {
+      (c.anchors || []).forEach(function (_, i) {
+        total += 1;
+        if (anchorEls[c.id + ":" + i] && anchorEls[c.id + ":" + i].length) { /* per-source only */ }
+      });
+    });
+    located = Object.keys(anchorEls).length;
+    var text = "anchors in view: " + located + " · total verified: " + total;
+    if (src.reanchorMisses && src.reanchorMisses.count) {
+      text += " · not re-located: " + src.reanchorMisses.count;
+    }
+    $("anchor-counter").textContent = text;
+  }
+
+  // ---------------- citation card ----------------
+  var FAIL_EXPLANATIONS = {
+    not_found: "The model could not produce a verbatim supporting passage that exists in the source.",
+    case_mismatch: "A matching passage exists but with different capitalization — inspect closely.",
+    only_in_citing_cases: "The quoted text appears only in the Citing Cases appendix, not the opinion body.",
+    ambiguous_in_memo: "The citation could not be uniquely located in the memo.",
+    memo_context_not_found: "The citation's surrounding context could not be located in the memo.",
+    cite_text_not_in_context: "The citation text was not inside its claimed context.",
+    segment_too_short: "An ellipsis-quote segment was too short to verify safely.",
+    ellipsis_gap_too_large: "The parts of an ellipsis quote are too far apart in the source.",
+    source_missing: "No stored copy of the cited authority was available to verify against."
+  };
+
+  function select(cid, scrollMemo) {
+    var prev = current;
+    current = cid;
+    if (prev) styleCite(prev);
+    styleCite(cid);
+
+    var c = byId[cid];
+    $("card").hidden = false;
+    $("card-cid").textContent = cid;
+    var st = $("card-status");
+    st.textContent = c.status.replace(/_/g, " ");
+    st.className = "badge " + c.status;
+    var matches = (c.anchors || []).map(function (a) { return a.match; });
+    var matchBadge = $("card-match");
+    if (matches.length) {
+      matchBadge.hidden = false;
+      matchBadge.textContent = matches.indexOf("normalized") === -1
+        ? "exact match" : "normalized match";
+    } else { matchBadge.hidden = true; }
+    $("card-meta").textContent =
+      (c.pin ? "pin: " + c.pin + " · " : "") + c.support_type;
+    $("card-cite").textContent = c.cite_text;
+    $("card-prop").textContent = c.proposition;
+
+    var fail = $("card-fail");
+    if (c.status === "anchor_failed") {
+      fail.hidden = false;
+      fail.textContent = "⚠ " + (FAIL_EXPLANATIONS[c.failure_reason] ||
+        ("Verification failed: " + (c.failure_reason || "unknown"))) +
+        " Review this citation with particular care.";
+    } else { fail.hidden = true; }
+
+    var stale = $("card-stale");
+    if (staleReviews[cid]) {
+      stale.hidden = false;
+      stale.textContent = "An imported verdict (" + staleReviews[cid].verdict +
+        " by " + staleReviews[cid].reviewer + ") is stale — the citation or its " +
+        "proposition changed since that review. Re-review required.";
+    } else { stale.hidden = true; }
+
+    var v = verdicts[cid];
+    var btns = $("verdicts").querySelectorAll("button[data-verdict]");
+    btns.forEach(function (b) {
+      b.className = v && v.verdict === b.dataset.verdict ? "on-" + v.verdict : "";
+    });
+    $("note").value = (v && v.note) || "";
+
+    if (scrollMemo && memoLinks[cid] && memoLinks[cid][0]) {
+      scrollToInPane($("memo-body"), memoLinks[cid][0]);
+    }
+    renderSource(c.source, cid);
+  }
+
+  function setVerdict(cid, verdict) {
+    if (verdicts[cid] && verdicts[cid].verdict === verdict) {
+      delete verdicts[cid];   // toggle off
+    } else {
+      verdicts[cid] = {
+        verdict: verdict,
+        note: $("note").value || "",
+        reviewer: $("reviewer").value || "",
+        at: new Date().toISOString(),
+        binds_to: src.binds[cid] || ""
+      };
+    }
+    persistLocal();
+    styleCite(cid);
+    updateProgress();
+    select(cid, false);
+  }
+
+  function updateProgress() {
+    var done = Object.keys(verdicts).length;
+    $("progress").textContent = done + "/" + citations.length + " reviewed";
+  }
+
+  // ---------------- persistence: localStorage ----------------
+  function persistLocal() {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({
+        reviewer: $("reviewer").value || "",
+        verdicts: verdicts
+      }));
+    } catch (e) { /* storage unavailable (some sandboxes) — exports still work */ }
+  }
+
+  function loadLocal() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(storageKey));
+      if (saved) {
+        verdicts = saved.verdicts || {};
+        $("reviewer").value = saved.reviewer || "";
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  // ---------------- import / export ----------------
+  function buildReviewJson() {
+    var reviews = {};
+    Object.keys(verdicts).forEach(function (cid) {
+      var v = verdicts[cid];
+      reviews[cid] = {
+        verdict: v.verdict,
+        note: v.note || "",
+        reviewer: v.reviewer || $("reviewer").value || "",
+        at: v.at,
+        binds_to: v.binds_to
+      };
+    });
+    return { schema_version: 1, reviews: reviews };
+  }
+
+  function downloadReview(text) {
+    var blob = new Blob([text], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "review.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+  }
+
+  function copyReview(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } finally { ta.remove(); }
+    return Promise.resolve();
+  }
+
+  function exportReview() {
+    var text = JSON.stringify(buildReviewJson(), null, 2);
+    var btn = $("export-btn");
+    if (src.sendReview) {            // MCP mode: hand to Claude via ui/message
+      btn.disabled = true;
+      src.sendReview(text, summaryLine()).then(function () {
+        btn.disabled = false;
+        btn.textContent = "Sent to Claude ✓";
+      }, function () {
+        // Fall back: try a download, and put it on the clipboard too.
+        btn.disabled = false;
+        downloadReview(text);
+        copyReview(text);
+        btn.textContent = "Downloaded/copied (host send failed)";
+      });
+      return;
+    }
+    downloadReview(text);
+  }
+
+  function summaryLine() {
+    var counts = {};
+    Object.keys(verdicts).forEach(function (cid) {
+      counts[verdicts[cid].verdict] = (counts[verdicts[cid].verdict] || 0) + 1;
+    });
+    var parts = Object.keys(counts).map(function (k) { return counts[k] + " " + k; });
+    return "Cite-check review: " + Object.keys(verdicts).length + "/" +
+      citations.length + " citations reviewed (" + (parts.join(", ") || "none") + ").";
+  }
+
+  function applyImportedReview(review, overwrite) {
+    if (!review || review.schema_version !== 1 || !review.reviews) { return 0; }
+    var applied = 0;
+    Object.keys(review.reviews).forEach(function (cid) {
+      var entry = review.reviews[cid];
+      if (!byId[cid]) { return; }
+      if (entry.binds_to && entry.binds_to === src.binds[cid]) {
+        if (overwrite || !verdicts[cid]) {
+          verdicts[cid] = {
+            verdict: entry.verdict, note: entry.note || "",
+            reviewer: entry.reviewer || "", at: entry.at || "",
+            binds_to: entry.binds_to
+          };
+          applied += 1;
+        }
+      } else {
+        staleReviews[cid] = entry;
+      }
+    });
+    return applied;
+  }
+
+  function importReviewFile(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+      var review = null;
+      try { review = JSON.parse(reader.result); } catch (e) {}
+      if (!review || review.schema_version !== 1) {
+        alert("Not a valid review.json (schema v1).");
+        return;
+      }
+      var n = applyImportedReview(review, true);
+      persistLocal();
+      renderChips();
+      updateProgress();
+      if (current) { select(current, false); }
+      alert("Imported " + n + " verdict(s)." +
+        (Object.keys(staleReviews).length
+          ? " " + Object.keys(staleReviews).length + " stale verdict(s) shown for reference only."
+          : ""));
+    };
+    reader.readAsText(file);
+  }
+
+  // ---------------- controls ----------------
+  function wireControls() {
+    $("export-btn").addEventListener("click", exportReview);
+    $("import-btn").addEventListener("click", function () { $("import-file").click(); });
+    $("import-file").addEventListener("change", function (ev) {
+      if (ev.target.files && ev.target.files[0]) { importReviewFile(ev.target.files[0]); }
+      ev.target.value = "";
+    });
+    $("reviewer").addEventListener("change", persistLocal);
+    $("note").addEventListener("input", function () {
+      if (current && verdicts[current]) {
+        verdicts[current].note = $("note").value;
+        persistLocal();
+      }
+    });
+    $("verdicts").querySelectorAll("button[data-verdict]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (current) { setVerdict(current, b.dataset.verdict); }
+      });
+    });
+    $("prev-btn").addEventListener("click", function () { step(-1); });
+    $("next-btn").addEventListener("click", function () { step(1); });
+    document.addEventListener("keydown", function (ev) {
+      var t = ev.target;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) { return; }
+      if (ev.key === "j") { step(1); }
+      else if (ev.key === "k") { step(-1); }
+      else if (ev.key >= "1" && ev.key <= "4" && current) {
+        var order = ["verified", "rejected", "misquoted", "wrong_pin"];
+        setVerdict(current, order[Number(ev.key) - 1]);
+      }
+    });
+  }
+
+  function step(delta) {
+    if (!citations.length) { return; }
+    var i = citations.findIndex(function (c) { return c.id === current; });
+    var next = citations[(i + delta + citations.length) % citations.length];
+    select(next.id, true);
+  }
+
+  // ==================================================================
+  // MCP App mode: JS normalization port, re-anchoring, host bridge
+  // ==================================================================
+  //
+  // The normalization rules below are a PORT of verify_anchors.py's
+  // normalize_with_map and must stay in lockstep with it. The shared
+  // test vectors live at skills/cite-check/tests/normalization_vectors.json
+  // and are exercised by both pytest and the dev harness self-test.
+  //
+  // Indexing note: these maps are in JS UTF-16 code-unit space and are only
+  // ever applied to strings fetched in this same session — Python codepoint
+  // offsets from cites.json are never used in MCP mode.
+
+  var CF_RE = /\p{Cf}/u;
+  var WS_RE = /\s/;
+  var LOWER_RE = /\p{Ll}/u;
+  var LETTER_RE = /\p{L}/u;
+  var SINGLE_Q = "‘’‚‛′";
+  var DOUBLE_Q = "“”„‟″«»";
+  var DASHES = "‐‑‒–—―−";
+
+  function normalizeWithMap(text) {
+    var out = [], starts = [], ends = [];
+    var i = 0, n = text.length;
+    function push(chunk, s, e) {
+      for (var q = 0; q < chunk.length; q++) {
+        out.push(chunk[q]); starts.push(s); ends.push(e);
+      }
+    }
+    function lastIsSpace() { return out.length && out[out.length - 1] === " "; }
+    while (i < n) {
+      var ch = String.fromCodePoint(text.codePointAt(i));
+      var w = ch.length;
+      if (CF_RE.test(ch)) { i += w; continue; }
+      if (WS_RE.test(ch)) {
+        var s0 = i;
+        while (i < n) {
+          var c2 = String.fromCodePoint(text.codePointAt(i));
+          if (WS_RE.test(c2) || CF_RE.test(c2)) { i += c2.length; } else { break; }
+        }
+        if (!lastIsSpace()) { push(" ", s0, i); }
+        continue;
+      }
+      if (ch === "-" || DASHES.indexOf(ch) !== -1) {
+        var j = i + w, sawNl = false;
+        while (j < n) {
+          var c3 = String.fromCodePoint(text.codePointAt(j));
+          if (WS_RE.test(c3) || CF_RE.test(c3)) {
+            if (c3 === "\n" || c3 === "\r") { sawNl = true; }
+            j += c3.length;
+          } else { break; }
+        }
+        if (sawNl && out.length && LETTER_RE.test(out[out.length - 1]) &&
+            j < n && LOWER_RE.test(String.fromCodePoint(text.codePointAt(j)))) {
+          i = j;  // de-hyphenate across the line break
+          continue;
+        }
+        push("-", i, i + w); i += w; continue;
+      }
+      if (SINGLE_Q.indexOf(ch) !== -1) { push("'", i, i + w); i += w; continue; }
+      if (DOUBLE_Q.indexOf(ch) !== -1) { push('"', i, i + w); i += w; continue; }
+      if (ch === "…") { push("...", i, i + w); i += w; continue; }
+      var folded = ch.normalize("NFKC");
+      for (var k = 0; k < folded.length;) {
+        var fch = String.fromCodePoint(folded.codePointAt(k));
+        k += fch.length;
+        if (WS_RE.test(fch)) {
+          if (lastIsSpace()) { continue; }
+          fch = " ";
+        }
+        push(fch, i, i + w);
+      }
+      i += w;
+    }
+    return { text: out.join(""), starts: starts, ends: ends };
+  }
+
+  function normalizeNeedle(s) {
+    return normalizeWithMap(s).text.replace(/^ +/, "").replace(/ +$/, "");
+  }
+
+  function allFind(hay, needle) {
+    var positions = [];
+    if (!needle) { return positions; }
+    var pos = hay.indexOf(needle);
+    while (pos !== -1) {
+      positions.push(pos);
+      pos = hay.indexOf(needle, pos + 1);
+    }
+    return positions;
+  }
+
+  // Interval flattening — mirror of build_review.segment_document.
+  function segmentDocument(raw, spans) {
+    var clipped = spans
+      .map(function (s) {
+        return { start: Math.max(0, s.start), end: Math.min(raw.length, s.end), mark: s.mark };
+      })
+      .filter(function (s) { return s.start < s.end; });
+    var bounds = { 0: true };
+    bounds[raw.length] = true;
+    clipped.forEach(function (s) { bounds[s.start] = true; bounds[s.end] = true; });
+    var ordered = Object.keys(bounds).map(Number).sort(function (a, b) { return a - b; });
+    var segments = [];
+    for (var x = 0; x < ordered.length - 1; x++) {
+      var a = ordered[x], b = ordered[x + 1];
+      var marks = clipped
+        .filter(function (s) { return s.start <= a && b <= s.end; })
+        .map(function (s) { return s.mark; });
+      segments.push({ text: raw.slice(a, b), marks: marks });
+    }
+    return segments;
+  }
+
+  // Display-only re-anchoring: exact match first, then the normalized port.
+  // The verifier's verdicts (in cites.json) stay authoritative either way.
+  function findQuoteSpan(rawText, normDoc, quote) {
+    var p = rawText.indexOf(quote);
+    if (p !== -1) { return { start: p, end: p + quote.length }; }
+    var nq = normalizeNeedle(quote);
+    if (!nq) { return null; }
+    var np = normDoc.text.indexOf(nq);
+    if (np === -1) { return null; }
+    return { start: normDoc.starts[np], end: normDoc.ends[np + nq.length - 1] };
+  }
+
+  // Locate each citation's cite_text in the memo (mirror of the verifier's
+  // anchor_memo, including memo_context disambiguation for Id. chains).
+  function findMemoSpans(memoText, citationList) {
+    var normMemo = normalizeWithMap(memoText);
+    var spans = [];
+    citationList.forEach(function (c) {
+      var nc = normalizeNeedle(c.cite_text);
+      if (!nc) { return; }
+      var positions = allFind(normMemo.text, nc);
+      var pos = -1;
+      if (positions.length === 1) {
+        pos = positions[0];
+      } else if (positions.length > 1 && c.memo_context) {
+        var nctx = normalizeNeedle(c.memo_context);
+        var ctxPositions = allFind(normMemo.text, nctx);
+        if (ctxPositions.length === 1) {
+          var inner = normMemo.text.indexOf(nc, ctxPositions[0]);
+          if (inner !== -1 && inner + nc.length <= ctxPositions[0] + nctx.length) {
+            pos = inner;
+          }
+        }
+      }
+      if (pos !== -1) {
+        spans.push({ start: normMemo.starts[pos],
+                     end: normMemo.ends[pos + nc.length - 1], mark: c.id });
+      }
+    });
+    return spans;
+  }
+
+  // ---------------- host bridge (JSON-RPC over postMessage) ----------------
+  function createBridge() {
+    var pending = {}, nextId = 1, notifHandlers = {}, reqHandlers = {};
+    window.addEventListener("message", function (ev) {
+      // Only accept messages from the MCP Apps host (our parent window).
+      // Without this, any other frame could post a spoofed JSON-RPC message
+      // and trigger UI actions or tool calls. Origin is intentionally NOT
+      // pinned: sandboxed MCP App iframes often carry an opaque/null origin,
+      // so an origin allowlist would risk rejecting legitimate hosts.
+      if (ev.source !== window.parent) { return; }
+      var msg = ev.data;
+      if (!msg || msg.jsonrpc !== "2.0") { return; }
+      if (msg.method === undefined && msg.id !== undefined) {
+        var p = pending[msg.id];
+        if (p) {
+          delete pending[msg.id];
+          if (msg.error) { p.reject(new Error(msg.error.message || "host error")); }
+          else { p.resolve(msg.result); }
+        }
+        return;
+      }
+      if (msg.method !== undefined && msg.id !== undefined) {
+        var rh = reqHandlers[msg.method];
+        Promise.resolve(rh ? rh(msg.params || {}) : {}).then(function (res) {
+          post({ jsonrpc: "2.0", id: msg.id, result: res || {} });
+        }, function (err) {
+          post({ jsonrpc: "2.0", id: msg.id,
+                 error: { code: -32000, message: String((err && err.message) || err) } });
+        });
+        return;
+      }
+      if (msg.method !== undefined) {
+        var h = notifHandlers[msg.method];
+        if (h) { h(msg.params || {}); }
+      }
+    });
+    function post(m) { window.parent.postMessage(m, "*"); }
+    return {
+      request: function (method, params) {
+        var id = nextId++;
+        return new Promise(function (resolve, reject) {
+          pending[id] = { resolve: resolve, reject: reject };
+          post({ jsonrpc: "2.0", id: id, method: method, params: params || {} });
+        });
+      },
+      notify: function (method, params) {
+        post({ jsonrpc: "2.0", method: method, params: params || {} });
+      },
+      on: function (method, fn) { notifHandlers[method] = fn; },
+      onRequest: function (method, fn) { reqHandlers[method] = fn; }
+    };
+  }
+
+  function showMcpStatus(text) {
+    var box = $("mcp-waiting").querySelector("p:nth-of-type(2)");
+    if (box) { box.textContent = text; }
+  }
+
+  function initMcp() {
+    if (window.parent === window) { return; }  // not embedded: leave waiting screen
+    var bridge = createBridge();
+    var started = false, toolArgs = null, hostInitialized = false;
+
+    function maybeStart() {
+      if (started || toolArgs === null || !hostInitialized) { return; }
+      if (typeof toolArgs.memo_text !== "string" || !toolArgs.cites ||
+          !toolArgs.cites.citations) {
+        showMcpStatus("The review tool was called without memo_text/cites — " +
+                      "re-run /cite-check.");
+        return;
+      }
+      started = true;
+      startApp(makeMcpSource(bridge, toolArgs));
+    }
+
+    bridge.on("ui/notifications/tool-input", function (params) {
+      toolArgs = (params && params.arguments) || {};
+      maybeStart();
+    });
+    bridge.on("ui/notifications/tool-result", function () { /* count summary only */ });
+    bridge.on("ui/notifications/tool-cancelled", function () {
+      showMcpStatus("The tool call was cancelled.");
+    });
+    bridge.onRequest("ui/resource-teardown", function () { return {}; });
+
+    bridge.request("ui/initialize", {
+      protocolVersion: "2026-01-26",
+      capabilities: {},
+      clientInfo: { name: "dingduff-citecheck-review", version: "1.0.0" }
+    }).then(function () {
+      hostInitialized = true;
+      bridge.notify("ui/notifications/initialized", {});
+      maybeStart();
+    }, function (err) {
+      showMcpStatus("Host bridge initialize failed: " + err.message);
+    });
+  }
+
+  function makeMcpSource(bridge, args) {
+    var cites = args.cites;
+    var memoText = args.memo_text;
+    var misses = { count: 0 };
+    var binds = {};
+    cites.citations.forEach(function (c) {
+      if (c.binds_to) { binds[c.id] = c.binds_to; }
+    });
+    return {
+      mode: "mcp",
+      cites: cites,
+      memoDoc: {
+        segments: segmentDocument(memoText, findMemoSpans(memoText, cites.citations)),
+        checksum_ok: true
+      },
+      binds: binds,
+      build: { forced: false, mismatches: [] },
+      priorReview: null,
+      reanchorMisses: misses,
+      getSourceDoc: function (key) {
+        var meta = cites.sources[key] || {};
+        if (meta.missing) { return Promise.resolve({ segments: null, missing: true }); }
+        var sourceId = meta.type === "opinion"
+          ? (meta.cluster_id != null ? String(meta.cluster_id) : null)
+          : (meta.statute_id || null);
+        if (!sourceId) { return Promise.resolve({ segments: null, missing: true }); }
+        return bridge.request("tools/call", {
+          name: "citecheck_fetch_source",
+          arguments: { source_type: meta.type, source_id: sourceId }
+        }).then(function (result) {
+          var sc = result && result.structuredContent;
+          if (!sc || typeof sc.document_markdown !== "string") {
+            throw new Error((sc && sc.error) || "source fetch returned no document");
+          }
+          var docText = sc.document_markdown;
+          var normDoc = normalizeWithMap(docText);
+          var spans = [], unlocated = [];
+          cites.citations.forEach(function (c) {
+            if (c.source !== key) { return; }
+            (c.anchors || []).forEach(function (a, i) {
+              var span = findQuoteSpan(docText, normDoc, a.quote);
+              if (span) {
+                spans.push({ start: span.start, end: span.end, mark: c.id + ":" + i });
+              } else {
+                misses.count += 1;
+                unlocated.push({ cid: c.id, quote: a.quote });
+              }
+            });
+          });
+          return { segments: segmentDocument(docText, spans),
+                   checksum_ok: true, reanchored: true, unlocated: unlocated };
+        });
+      },
+      sendReview: function (reviewJson, summary) {
+        bridge.request("ui/update-model-context", {
+          structuredContent: { citecheck_review_summary: summary }
+        }).catch(function () { /* optional */ });
+        // Reviewer notes are free-form and can contain backticks, which would
+        // prematurely close a ```-fence. Per CommonMark, a fence is only
+        // closed by a run of at least as many backticks, so size the fence
+        // one longer than the longest run in the payload — keeping the note
+        // verbatim and the block unambiguous.
+        var longest = 0;
+        var runs = reviewJson.match(/`+/g);
+        if (runs) { runs.forEach(function (r) { longest = Math.max(longest, r.length); }); }
+        var fence = new Array(Math.max(3, longest + 1) + 1).join("`");
+        var text = "The attorney completed the cite-check review. " + summary +
+          "\n\nPlease save the following as review.json in the project folder " +
+          "(next to cites.json):\n\n" + fence + "json\n" + reviewJson + "\n" + fence;
+        return bridge.request("ui/message", {
+          role: "user",
+          content: { type: "text", text: text }
+        });
+      }
+    };
+  }
+
+  // Exposed for the dev harness's normalization parity self-test only.
+  window.CiteCheckTest = {
+    normalizeWithMap: normalizeWithMap,
+    normalizeNeedle: normalizeNeedle,
+    segmentDocument: segmentDocument,
+    findQuoteSpan: findQuoteSpan,
+    findMemoSpans: findMemoSpans
+  };
+
+  boot();
+})();
+</script>
+</body>
+</html>

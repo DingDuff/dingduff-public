@@ -1,0 +1,14 @@
+{
+  "name": "dingduff",
+  "owner": {
+    "name": "DingDuff",
+    "url": "https://dingduff.com"
+  },
+  "plugins": [
+    {
+      "name": "dingduff",
+      "source": "./plugins/dingduff",
+      "description": "DingDuff legal workflow skills. Includes /dingduff:dingduff-citation-check, which verifies every citation in a drafted memo against DingDuff-stored opinion and statute sources and opens an attorney review panel. Requires the DingDuff MCP connector."
+    }
+  ]
+}

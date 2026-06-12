@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dingduff.com/schemas/cite-check/review.schema.json",
+  "title": "DingDuff cite-check attorney review record (review.json), schema v1",
+  "description": "Attorney verdicts on the citations in a cites.json. Kept in a separate file so regenerating cites.json never clobbers attorney work; verdicts carry forward across regenerations via binds_to.",
+  "type": "object",
+  "required": ["schema_version", "reviews"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "reviews": {
+      "type": "object",
+      "description": "Keyed by citation id from cites.json.",
+      "propertyNames": { "pattern": "^c\\d{3,}$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["verdict", "reviewer", "at", "binds_to"],
+        "properties": {
+          "verdict": { "enum": ["verified", "rejected", "misquoted", "wrong_pin"] },
+          "note": { "type": "string" },
+          "reviewer": { "type": "string", "description": "Reviewer identity (e.g. email or initials)." },
+          "at": { "type": "string", "format": "date-time" },
+          "binds_to": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "SHA-256 of cite_text + \"\\u0000\" + proposition for the reviewed citation. A verdict whose binds_to no longer matches the regenerated citation is stale and must be shown for reference only, not applied."
+          }
+        }
+      }
+    }
+  }
+}
