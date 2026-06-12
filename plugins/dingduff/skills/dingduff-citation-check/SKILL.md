@@ -159,19 +159,23 @@ not retryable.
 
 Call the `citecheck_review` MCP tool with:
 - `memo_text`: the memo file content, passed VERBATIM (do not re-wrap,
-  reformat, or "clean up" — re-anchoring depends on it).
+  reformat, or "clean up" — the panel verifies it against the memo's
+  SHA-256 from cites.json and flags any transcription drift).
 - `cites`: the parsed content of cites.json.
 
-This renders the two-pane review panel in the conversation. If the panel
-fails to render (no app support in this client), fall back to the standalone
-bundle:
+This renders the two-pane review panel in the conversation. Then ALWAYS
+build the standalone fallback too (cheap, local, and the only path on
+clients without app support):
 
 ```
 python3 <skill-dir>/scripts/build_review.py --cites cites.json --out review.html
 ```
 
-(add `--review review.json` if a prior review export exists) and tell the
-user to open `review.html` in a browser.
+(add `--review review.json` if a prior review export exists). Check the
+tool result's `structuredContent.panel` field: if it is `"may_not_render"`,
+LEAD with the fallback — tell the user to open `review.html` in a browser
+rather than waiting for a panel that won't appear. Otherwise mention
+review.html as the backup if no panel appears above.
 
 ## Step 7 — Summarize for the attorney
 
@@ -183,7 +187,7 @@ warnings. Then explicitly call out, in prose:
 - any verifier warnings (`multiple_matches`, `short_quote`,
   `match_in_header`, `cluster_id_mismatch`).
 
-Explain next steps: review each citation in the panel (j/k to move, 1–4 for
+Explain next steps: review each citation in the panel (j/k to move, 1–3 for
 verdicts), then click "Send review to Claude" (panel) or "Export
 review.json" (standalone).
 
@@ -192,6 +196,23 @@ review.json" (standalone).
 When the attorney finishes, the panel sends a message containing a fenced
 ```json review.json block. Save it VERBATIM as `review.json` in the project
 root (next to cites.json). Confirm the save and summarize the verdicts —
-especially any `rejected`, `misquoted`, or `wrong_pin` citations, which need
+especially any `rejected` (‼️) or `needs_attention` (⚠️) citations, which need
 memo revisions. After revising the memo, re-run /cite-check; verdicts whose
 citation and proposition are unchanged carry forward automatically.
+
+## Step 9 — Generate the audit log
+
+After review.json is saved, generate the printable audit record:
+
+```
+python3 <skill-dir>/scripts/build_audit.py --cites cites.json \
+    --review review.json --out cite-check-audit.html
+```
+
+Tell the attorney `cite-check-audit.html` is ready — it prints on landscape
+letter paper and records, per citation: the source, the proposition, whether
+the verifier anchored it, the attorney's verdict (✅ ⚠️ ‼️ ❓), the review
+note, and the reviewer — plus an integrity footer (memo hash, verification
+provenance). This is the firm's record that the work product was checked.
+If the user wants the audit before any attorney review, run it without
+`--review` (all rows show ❓).

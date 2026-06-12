@@ -108,8 +108,8 @@
   .cite-chip.noquote { color: var(--muted); border-style: dotted; }
   .cite-chip.current { outline: 2px solid var(--accent); }
   .cite-chip.v-verified { background: var(--green-bg); border-color: var(--green); color: var(--green); }
-  .cite-chip.v-rejected, .cite-chip.v-misquoted { background: var(--red-bg); border-color: var(--red); color: var(--red); }
-  .cite-chip.v-wrong_pin { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
+  .cite-chip.v-rejected { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .cite-chip.v-needs_attention { background: var(--amber-bg); border-color: var(--amber); color: var(--amber); }
   main {
     flex: 1 1 auto;
     display: grid;
@@ -167,8 +167,8 @@
   a.cite.noquote { color: var(--muted); text-decoration-style: dotted; }
   a.cite.current { background: #e7eefb; outline: 1px solid var(--accent); border-radius: 2px; }
   a.cite.v-verified { background: var(--green-bg); }
-  a.cite.v-rejected, a.cite.v-misquoted { background: var(--red-bg); }
-  a.cite.v-wrong_pin { background: var(--amber-bg); }
+  a.cite.v-rejected { background: var(--red-bg); }
+  a.cite.v-needs_attention { background: var(--amber-bg); }
   mark { background: var(--hl); padding: 0; border-radius: 2px; }
   mark.current { background: var(--hl-current); outline: 1px solid var(--amber); }
   #card {
@@ -204,8 +204,8 @@
   #verdicts { display: flex; gap: 8px; margin: 10px 0 6px; flex-wrap: wrap; align-items: center; }
   #verdicts button { font-size: 0.88em; }
   #verdicts button.on-verified { background: var(--green); border-color: var(--green); color: #fff; }
-  #verdicts button.on-rejected, #verdicts button.on-misquoted { background: var(--red); border-color: var(--red); color: #fff; }
-  #verdicts button.on-wrong_pin { background: var(--amber); border-color: var(--amber); color: #fff; }
+  #verdicts button.on-rejected { background: var(--red); border-color: var(--red); color: #fff; }
+  #verdicts button.on-needs_attention { background: var(--amber); border-color: var(--amber); color: #fff; }
   #nav-btns { margin-left: auto; display: flex; gap: 6px; }
   #note {
     width: 100%;
@@ -243,6 +243,28 @@
     padding: 0 5px;
     font-size: 0.85em;
   }
+  /* Printable audit log (standalone mode): when body.print-audit is set,
+     printing shows ONLY the generated audit table, letter landscape.
+     Table styles mirror scripts/build_audit.py — keep them in lockstep. */
+  #print-audit { display: none; }
+  @media print {
+    @page { size: letter landscape; margin: 0.5in; }
+    body.print-audit > :not(#print-audit) { display: none !important; }
+    body.print-audit #print-audit { display: block !important; }
+  }
+  #print-audit { font-size: 9.5pt; color: #1a1a1a; }
+  #print-audit h1 { font-size: 13pt; margin: 0 0 2pt; }
+  #print-audit .meta, #print-audit .legend { color: #555; font-size: 8.5pt; margin-bottom: 6pt; }
+  #print-audit table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  #print-audit thead { display: table-header-group; }
+  #print-audit th { background: #f0efec; text-align: left; font-size: 8.5pt;
+                    text-transform: uppercase; letter-spacing: 0.04em; }
+  #print-audit th, #print-audit td { border: 0.5pt solid #999; padding: 3pt 5pt;
+                    vertical-align: top; overflow-wrap: break-word; }
+  #print-audit tr { page-break-inside: avoid; }
+  #print-audit td.status { text-align: center; font-size: 12pt; }
+  #print-audit .integrity { margin-top: 10pt; font-size: 7.5pt; color: #555;
+                    border-top: 0.5pt solid #999; padding-top: 4pt; }
 </style>
 </head>
 <body>
@@ -253,6 +275,7 @@
   <input id="reviewer" placeholder="Reviewer (initials/email)" autocomplete="off">
   <button id="import-btn" title="Import a previously exported review.json">Import</button>
   <input type="file" id="import-file" accept="application/json,.json" hidden>
+  <button id="audit-btn" title="Print a landscape audit-log table of this review">Audit log</button>
   <button id="export-btn" class="primary">Export review.json</button>
 </header>
 <div id="banner" hidden></div>
@@ -279,10 +302,9 @@
       <div class="fail-note" id="card-fail" hidden></div>
       <div class="stale-note" id="card-stale" hidden></div>
       <div id="verdicts">
-        <button data-verdict="verified" title="Shortcut: 1">✓ Verified</button>
-        <button data-verdict="rejected" title="Shortcut: 2">✗ Rejected</button>
-        <button data-verdict="misquoted" title="Shortcut: 3">≠ Misquoted</button>
-        <button data-verdict="wrong_pin" title="Shortcut: 4">⌖ Wrong pin</button>
+        <button data-verdict="verified" title="Shortcut: 1">✅ Verified</button>
+        <button data-verdict="needs_attention" title="Shortcut: 2">⚠️ Needs attention</button>
+        <button data-verdict="rejected" title="Shortcut: 3">‼️ Rejected</button>
       </div>
       <textarea id="note" placeholder="Reviewer note (optional)"></textarea>
     </div>
@@ -291,7 +313,7 @@
   </section>
 </main>
 <div id="footer" hidden>
-  <span>Keyboard: <kbd>j</kbd>/<kbd>k</kbd> next/prev · <kbd>1</kbd>–<kbd>4</kbd> verdicts</span>
+  <span>Keyboard: <kbd>j</kbd>/<kbd>k</kbd> next/prev · <kbd>1</kbd>–<kbd>3</kbd> verdicts</span>
   <span id="anchor-counter"></span>
   <span id="mode-label"></span>
 </div>
@@ -303,6 +325,8 @@
        generated by <code>build_review.py</code>.</p>
   </div>
 </div>
+
+<div id="print-audit" hidden></div>
 
 <script id="citecheck-payload" type="application/json">/*__CITECHECK_PAYLOAD__*/</script>
 <script>
@@ -350,6 +374,7 @@
   var citations = [];       // ordered citation entries
   var byId = {};            // cid -> citation
   var verdicts = {};        // cid -> {verdict, note, reviewer, at, binds_to}
+  var notes = {};           // cid -> note typed independently of any verdict
   var staleReviews = {};    // cid -> imported-but-stale entry
   var current = null;       // selected cid
   var memoLinks = {};       // cid -> [<a>]
@@ -370,7 +395,13 @@
     $("main").hidden = false;
     $("footer").hidden = false;
     $("mode-label").textContent = "mode: " + src.mode;
-    if (src.sendReview) { $("export-btn").textContent = "Send review to Claude"; }
+    if (src.sendReview) {
+      $("export-btn").textContent = "Send review to Claude";
+      // In MCP mode the audit log is generated by the skill (build_audit.py)
+      // after review.json lands on disk; printing from the iframe is
+      // host-dependent, so the button is standalone-only.
+      $("audit-btn").hidden = true;
+    }
 
     loadLocal();
     if (src.priorReview) { applyImportedReview(src.priorReview, false); }
@@ -639,7 +670,7 @@
     btns.forEach(function (b) {
       b.className = v && v.verdict === b.dataset.verdict ? "on-" + v.verdict : "";
     });
-    $("note").value = (v && v.note) || "";
+    syncNoteField(cid, false);
 
     if (scrollMemo && memoLinks[cid] && memoLinks[cid][0]) {
       scrollToInPane($("memo-body"), memoLinks[cid][0]);
@@ -647,13 +678,30 @@
     renderSource(c.source, cid);
   }
 
+  // The note field stays hidden until the citation has a verdict (or an
+  // existing note); most ✅ citations never need an explanation. On
+  // ⚠️/‼️ it reveals AND focuses with a pointed placeholder.
+  function syncNoteField(cid, focusIt) {
+    var v = verdicts[cid];
+    var note = (v && v.note) || notes[cid] || "";
+    var el = $("note");
+    el.value = note;
+    el.hidden = !v && !note;
+    el.placeholder = v && v.verdict !== "verified"
+      ? "Why does this need attention? (optional)"
+      : "Reviewer note (optional)";
+    if (focusIt && !el.hidden) { el.focus(); }
+  }
+
   function setVerdict(cid, verdict) {
     if (verdicts[cid] && verdicts[cid].verdict === verdict) {
-      delete verdicts[cid];   // toggle off
+      // Toggle off — keep any typed note in the notes map so it isn't lost.
+      notes[cid] = verdicts[cid].note || notes[cid] || "";
+      delete verdicts[cid];
     } else {
       verdicts[cid] = {
         verdict: verdict,
-        note: $("note").value || "",
+        note: $("note").value || notes[cid] || "",
         reviewer: $("reviewer").value || "",
         at: new Date().toISOString(),
         binds_to: src.binds[cid] || ""
@@ -663,6 +711,7 @@
     styleCite(cid);
     updateProgress();
     select(cid, false);
+    syncNoteField(cid, verdict !== "verified" && !!verdicts[cid]);
   }
 
   function updateProgress() {
@@ -675,7 +724,8 @@
     try {
       localStorage.setItem(storageKey, JSON.stringify({
         reviewer: $("reviewer").value || "",
-        verdicts: verdicts
+        verdicts: verdicts,
+        notes: notes
       }));
     } catch (e) { /* storage unavailable (some sandboxes) — exports still work */ }
   }
@@ -685,6 +735,7 @@
       var saved = JSON.parse(localStorage.getItem(storageKey));
       if (saved) {
         verdicts = saved.verdicts || {};
+        notes = saved.notes || {};
         $("reviewer").value = saved.reviewer || "";
       }
     } catch (e) { /* ignore */ }
@@ -759,16 +810,27 @@
       citations.length + " citations reviewed (" + (parts.join(", ") || "none") + ").";
   }
 
+  // Pre-round-2 review.json files carried four verdicts; map the retired
+  // ones onto the 3-verdict model and preserve the original in the note.
+  var LEGACY_VERDICTS = { misquoted: "rejected", wrong_pin: "needs_attention" };
+  var VALID_VERDICTS = { verified: 1, needs_attention: 1, rejected: 1 };
+
   function applyImportedReview(review, overwrite) {
     if (!review || review.schema_version !== 1 || !review.reviews) { return 0; }
     var applied = 0;
     Object.keys(review.reviews).forEach(function (cid) {
       var entry = review.reviews[cid];
       if (!byId[cid]) { return; }
+      var verdict = entry.verdict, note = entry.note || "";
+      if (LEGACY_VERDICTS[verdict]) {
+        note = (note ? note + " " : "") + "[imported as " + verdict + "]";
+        verdict = LEGACY_VERDICTS[verdict];
+      }
+      if (!VALID_VERDICTS[verdict]) { return; }
       if (entry.binds_to && entry.binds_to === src.binds[cid]) {
         if (overwrite || !verdicts[cid]) {
           verdicts[cid] = {
-            verdict: entry.verdict, note: entry.note || "",
+            verdict: verdict, note: note,
             reviewer: entry.reviewer || "", at: entry.at || "",
             binds_to: entry.binds_to
           };
@@ -803,9 +865,102 @@
     reader.readAsText(file);
   }
 
+  // ---------------- printable audit log (standalone mode) ----------------
+  // Table shape mirrors scripts/build_audit.py — keep the two in lockstep.
+  var VERDICT_EMOJI = { verified: "✅", needs_attention: "⚠️", rejected: "‼️" };
+
+  function anchoredLabel(c) {
+    if (c.status === "anchored") {
+      var allExact = (c.anchors || []).every(function (a) { return a.match === "exact"; });
+      return "✓ (" + (allExact && c.anchors.length ? "exact" : "normalized") + ")";
+    }
+    if (c.status === "no_quote_claimed") { return "— no quote claimed"; }
+    var reason = c.failure_reason || "failed";
+    if (reason === "source_missing") { return "— source missing"; }
+    return "✗ " + reason.replace(/_/g, " ");
+  }
+
+  function sourceLabel(meta) {
+    if (!meta) { return "unknown"; }
+    if (meta.type === "opinion") {
+      var name = meta.case_name || ("cluster " + (meta.cluster_id || "?"));
+      return meta.citation ? name + ", " + meta.citation : name;
+    }
+    if (meta.citation) { return meta.citation; }
+    if (meta.code && meta.section) { return meta.code + " § " + meta.section; }
+    return meta.statute_id || "unknown statute";
+  }
+
+  function printAuditLog() {
+    var box = $("print-audit");
+    box.replaceChildren();
+    box.hidden = false;
+    function el(tag, cls, text) {
+      var node = document.createElement(tag);
+      if (cls) { node.className = cls; }
+      if (text !== undefined) { node.textContent = text; }
+      return node;
+    }
+    var counts = { "✅": 0, "⚠️": 0, "‼️": 0, "❓": 0 };
+    var reviewers = [];
+    var table = el("table");
+    var thead = el("thead"), hr = el("tr");
+    ["#", "Source cited", "Proposition cited for", "Anchored?",
+     "Review", "Review note", "Reviewed by"].forEach(function (h, i) {
+      var th = el("th", null, h);
+      th.style.width = ["4%", "17%", "28%", "10%", "6%", "25%", "10%"][i];
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+    var tbody = el("tbody");
+    citations.forEach(function (c) {
+      var v = verdicts[c.id];
+      var emoji = v ? (VERDICT_EMOJI[v.verdict] || "❓") : "❓";
+      counts[emoji] += 1;
+      var reviewer = (v && v.reviewer) || "";
+      if (reviewer && reviewers.indexOf(reviewer) === -1) { reviewers.push(reviewer); }
+      var tr = el("tr");
+      tr.appendChild(el("td", null, c.id));
+      tr.appendChild(el("td", null, sourceLabel(src.cites.sources[c.source])));
+      tr.appendChild(el("td", null, c.proposition || ""));
+      tr.appendChild(el("td", null, anchoredLabel(c)));
+      tr.appendChild(el("td", "status", emoji));
+      tr.appendChild(el("td", null, (v && v.note) || notes[c.id] || ""));
+      tr.appendChild(el("td", null, reviewer));
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+
+    var reviewed = citations.length - counts["❓"];
+    box.appendChild(el("h1", null, "Citation Verification Audit Log"));
+    box.appendChild(el("div", "meta",
+      "Memo: " + src.cites.memo.path + " · " + reviewed + "/" + citations.length +
+      " citations attorney-reviewed · ✅ " + counts["✅"] + " · ⚠️ " + counts["⚠️"] +
+      " · ‼️ " + counts["‼️"] + " · ❓ " + counts["❓"]));
+    box.appendChild(el("div", "legend",
+      "✅ verified · ⚠️ needs attention · ‼️ rejected · ❓ not reviewed. " +
+      "\"Anchored\" = the quoted passage was mechanically located, verbatim, " +
+      "in the stored source file by the cite-check verifier."));
+    box.appendChild(table);
+    box.appendChild(el("div", "integrity",
+      "Integrity record — memo SHA-256: " + src.cites.memo.sha256 +
+      " · verification run: " + (src.cites.memo.generated_at || "?") +
+      " by " + (src.cites.memo.generated_by || "?") +
+      " · reviewers: " + (reviewers.join(", ") || "(none)") +
+      " · printed from review_viewer.html. Verdicts bind to each citation's " +
+      "text+proposition hash; a changed citation invalidates its prior verdict."));
+
+    document.body.classList.add("print-audit");
+    window.print();
+    document.body.classList.remove("print-audit");
+    box.hidden = true;
+  }
+
   // ---------------- controls ----------------
   function wireControls() {
     $("export-btn").addEventListener("click", exportReview);
+    $("audit-btn").addEventListener("click", printAuditLog);
     $("import-btn").addEventListener("click", function () { $("import-file").click(); });
     $("import-file").addEventListener("change", function (ev) {
       if (ev.target.files && ev.target.files[0]) { importReviewFile(ev.target.files[0]); }
@@ -813,10 +968,14 @@
     });
     $("reviewer").addEventListener("change", persistLocal);
     $("note").addEventListener("input", function () {
-      if (current && verdicts[current]) {
+      if (!current) { return; }
+      // Always retained — a note typed before (or after toggling off) a
+      // verdict must never be silently dropped.
+      notes[current] = $("note").value;
+      if (verdicts[current]) {
         verdicts[current].note = $("note").value;
-        persistLocal();
       }
+      persistLocal();
     });
     $("verdicts").querySelectorAll("button[data-verdict]").forEach(function (b) {
       b.addEventListener("click", function () {
@@ -830,8 +989,8 @@
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) { return; }
       if (ev.key === "j") { step(1); }
       else if (ev.key === "k") { step(-1); }
-      else if (ev.key >= "1" && ev.key <= "4" && current) {
-        var order = ["verified", "rejected", "misquoted", "wrong_pin"];
+      else if (ev.key >= "1" && ev.key <= "3" && current) {
+        var order = ["verified", "needs_attention", "rejected"];
         setVerdict(current, order[Number(ev.key) - 1]);
       }
     });
@@ -1096,6 +1255,31 @@
     };
   }
 
+  // SHA-256 the delivered memo_text and compare to cites.memo.sha256 (the
+  // hash of the file the verifier actually checked). Skips silently when
+  // crypto.subtle is unavailable in the host iframe.
+  function checkMemoIntegrity(memoText, expectedSha) {
+    if (!expectedSha || typeof memoText !== "string") { return; }
+    if (!(window.crypto && crypto.subtle && crypto.subtle.digest &&
+          typeof TextEncoder !== "undefined")) { return; }
+    try {
+      crypto.subtle.digest("SHA-256", new TextEncoder().encode(memoText))
+        .then(function (buf) {
+          var hex = Array.prototype.map.call(new Uint8Array(buf), function (b) {
+            return ("0" + b.toString(16)).slice(-2);
+          }).join("");
+          if (hex !== expectedSha) {
+            var banner = $("banner");
+            banner.hidden = false;
+            banner.textContent = "⚠ The memo text delivered to this panel does " +
+              "not match the memo that was verified (SHA-256 mismatch — likely " +
+              "transcription drift in the tool call). Highlights and links may " +
+              "be unreliable; re-run the dingduff-citation-check skill.";
+          }
+        }).catch(function () { /* host without subtle crypto — skip */ });
+    } catch (e) { /* skip */ }
+  }
+
   function showMcpStatus(text) {
     var box = $("mcp-waiting").querySelector("p:nth-of-type(2)");
     if (box) { box.textContent = text; }
@@ -1116,6 +1300,11 @@
       }
       started = true;
       startApp(makeMcpSource(bridge, toolArgs));
+      // Tester finding: the model retypes the memo into the tool args, and
+      // transcription drift is possible. Verify the delivered memo_text
+      // against the hash recorded at verification time.
+      checkMemoIntegrity(toolArgs.memo_text,
+                         toolArgs.cites.memo && toolArgs.cites.memo.sha256);
     }
 
     bridge.on("ui/notifications/tool-input", function (params) {
