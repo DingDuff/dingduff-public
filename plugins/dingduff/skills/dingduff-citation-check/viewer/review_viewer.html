@@ -849,8 +849,8 @@
   // ==================================================================
   //
   // The normalization rules below are a PORT of verify_anchors.py's
-  // normalize_with_map and must stay in lockstep with it. The shared
-  // test vectors live at skills/cite-check/tests/normalization_vectors.json
+  // normalize_with_map and must stay in lockstep with it. The shared test
+  // vectors live at skills/dingduff-citation-check/tests/normalization_vectors.json
   // and are exercised by both pytest and the dev harness self-test.
   //
   // Indexing note: these maps are in JS UTF-16 code-unit space and are only
@@ -865,6 +865,48 @@
   var DOUBLE_Q = "“”„‟″«»";
   var DASHES = "‐‑‒–—―−";
 
+  // HTML character references — LOCKSTEP with verify_anchors.py's
+  // HTML_ENTITIES/_decode_entity_at (same fixed table, same numeric forms).
+  var HTML_ENTITIES = {
+    amp: "&", lt: "<", gt: ">", quot: '"', apos: "'",
+    nbsp: " ", shy: "­",
+    sect: "§", para: "¶", deg: "°", copy: "©", reg: "®",
+    trade: "™", middot: "·", bull: "•",
+    mdash: "—", ndash: "–", hellip: "…",
+    ldquo: "“", rdquo: "”", lsquo: "‘", rsquo: "’",
+    prime: "′", Prime: "″",
+    ensp: " ", emsp: " ", thinsp: " ",
+    frac12: "½", frac14: "¼", frac34: "¾"
+  };
+  var ENTITY_RE = /^&(?:#(\d{1,7})|#[xX]([0-9a-fA-F]{1,6})|([a-zA-Z][a-zA-Z0-9]{1,30}));/;
+
+  // Effective character at i: {ch, w} for a decodable reference, else null.
+  // hasOwnProperty guards against names like "constructor" hitting the
+  // Object prototype.
+  function decodeEntityAt(text, i) {
+    if (text.charCodeAt(i) !== 38 /* & */) { return null; }
+    var m = ENTITY_RE.exec(text.slice(i, i + 34));
+    if (!m) { return null; }
+    if (m[3] !== undefined) {
+      if (Object.prototype.hasOwnProperty.call(HTML_ENTITIES, m[3])) {
+        return { ch: HTML_ENTITIES[m[3]], w: m[0].length };
+      }
+      return null;
+    }
+    var cp = m[1] !== undefined ? parseInt(m[1], 10) : parseInt(m[2], 16);
+    if (cp > 0 && cp <= 0x10FFFF && !(cp >= 0xD800 && cp <= 0xDFFF)) {
+      return { ch: String.fromCodePoint(cp), w: m[0].length };
+    }
+    return null;
+  }
+
+  function effectiveCharAt(text, i) {
+    var ent = decodeEntityAt(text, i);
+    if (ent) { return ent; }
+    var ch = String.fromCodePoint(text.codePointAt(i));
+    return { ch: ch, w: ch.length };
+  }
+
   function normalizeWithMap(text) {
     var out = [], starts = [], ends = [];
     var i = 0, n = text.length;
@@ -875,14 +917,15 @@
     }
     function lastIsSpace() { return out.length && out[out.length - 1] === " "; }
     while (i < n) {
-      var ch = String.fromCodePoint(text.codePointAt(i));
-      var w = ch.length;
+      var eff = effectiveCharAt(text, i);
+      var ch = eff.ch, w = eff.w;
       if (CF_RE.test(ch)) { i += w; continue; }
       if (WS_RE.test(ch)) {
         var s0 = i;
+        i += w;
         while (i < n) {
-          var c2 = String.fromCodePoint(text.codePointAt(i));
-          if (WS_RE.test(c2) || CF_RE.test(c2)) { i += c2.length; } else { break; }
+          var e2 = effectiveCharAt(text, i);
+          if (WS_RE.test(e2.ch) || CF_RE.test(e2.ch)) { i += e2.w; } else { break; }
         }
         if (!lastIsSpace()) { push(" ", s0, i); }
         continue;
@@ -890,14 +933,14 @@
       if (ch === "-" || DASHES.indexOf(ch) !== -1) {
         var j = i + w, sawNl = false;
         while (j < n) {
-          var c3 = String.fromCodePoint(text.codePointAt(j));
-          if (WS_RE.test(c3) || CF_RE.test(c3)) {
-            if (c3 === "\n" || c3 === "\r") { sawNl = true; }
-            j += c3.length;
+          var e3 = effectiveCharAt(text, j);
+          if (WS_RE.test(e3.ch) || CF_RE.test(e3.ch)) {
+            if (e3.ch === "\n" || e3.ch === "\r") { sawNl = true; }
+            j += e3.w;
           } else { break; }
         }
         if (sawNl && out.length && LETTER_RE.test(out[out.length - 1]) &&
-            j < n && LOWER_RE.test(String.fromCodePoint(text.codePointAt(j)))) {
+            j < n && LOWER_RE.test(effectiveCharAt(text, j).ch)) {
           i = j;  // de-hyphenate across the line break
           continue;
         }
