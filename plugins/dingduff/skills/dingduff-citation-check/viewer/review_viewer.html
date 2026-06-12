@@ -687,9 +687,11 @@
     var el = $("note");
     el.value = note;
     el.hidden = !v && !note;
-    el.placeholder = v && v.verdict !== "verified"
-      ? "Why does this need attention? (optional)"
-      : "Reviewer note (optional)";
+    var PLACEHOLDERS = {
+      needs_attention: "Why does this need attention? (optional)",
+      rejected: "Why is this rejected? (optional)"
+    };
+    el.placeholder = (v && PLACEHOLDERS[v.verdict]) || "Reviewer note (optional)";
     if (focusIt && !el.hidden) { el.focus(); }
   }
 

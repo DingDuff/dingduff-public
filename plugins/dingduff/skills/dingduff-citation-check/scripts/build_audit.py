@@ -242,8 +242,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     out_path = workdir / args.out
     out_path.write_text(build_audit_html(cites, review, args.title),
                         encoding="utf-8")
+    # Same semantics as the table: stale (binds_to mismatch) and
+    # invalid-verdict entries do NOT count as attorney-reviewed.
+    reviews = (review or {}).get("reviews", {})
     reviewed = sum(1 for c in cites["citations"]
-                   if (review or {}).get("reviews", {}).get(c["id"]))
+                   if review_for(c, reviews)["emoji"] != UNREVIEWED)
     print(json.dumps({"ok": True, "out": args.out,
                       "citations": len(cites["citations"]),
                       "reviewed": reviewed}))

@@ -17,7 +17,7 @@
         "properties": {
           "verdict": {
             "enum": ["verified", "needs_attention", "rejected"],
-            "description": "✅ verified · ⚠️ needs_attention (supports the proposition but with a caveat the note should explain) · ‼️ rejected. Pre-round-2 files may carry the retired values 'misquoted'/'wrong_pin'; consumers map them to rejected/needs_attention respectively."
+            "description": "✅ verified · ⚠️ needs_attention (supports the proposition but with a caveat that the note should explain) · ‼️ rejected. Pre-round-2 files may carry the retired values 'misquoted'/'wrong_pin'; consumers map them to rejected/needs_attention respectively."
           },
           "note": { "type": "string" },
           "reviewer": { "type": "string", "description": "Reviewer identity (e.g. email or initials)." },
