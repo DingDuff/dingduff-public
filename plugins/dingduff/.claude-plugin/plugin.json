@@ -1,7 +1,7 @@
 {
   "name": "dingduff",
-  "description": "Client-side legal workflow skills for DingDuff users, including /cite-check citation verification against stored opinion and statute files.",
-  "version": "0.1.4",
+  "description": "Client-side legal research and workflow skills for DingDuff users: case-law research (standard and deep), deep statutory research, and citation verification against stored opinion and statute files.",
+  "version": "0.2.0",
   "author": {
     "name": "DingDuff"
   }
