@@ -13,11 +13,11 @@
     --line: #e2ded6;
     --accent: #1f4e8c;
     --green: #1e7d3e;
-    --green-bg: #e8f5ec;
+    --green-bg: #cde9d4;
     --red: #b3261e;
-    --red-bg: #fdecea;
+    --red-bg: #f8ccc6;
     --amber: #9a6700;
-    --amber-bg: #fff4d6;
+    --amber-bg: #ffe39a;
     --gray-bg: #f0efec;
     --hl: #fff3b0;
     --hl-current: #ffd66e;
@@ -44,7 +44,8 @@
     border-bottom: 1px solid var(--line);
     flex: 0 0 auto;
   }
-  .brand { font-weight: 700; color: var(--accent); white-space: nowrap; }
+  .brand { font-weight: 700; color: var(--accent); white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  #brand-icon { width: 20px; height: 20px; flex: 0 0 auto; }
   .brand span { font-weight: 400; color: var(--muted); }
   #memo-name {
     color: var(--muted);
@@ -121,7 +122,7 @@
   section { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
   #memo-pane { border-right: 1px solid var(--line); }
   .pane-head {
-    padding: 8px 16px;
+    padding: 6px 16px;
     font-size: 0.8em;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -129,10 +130,25 @@
     background: var(--pane);
     border-bottom: 1px solid var(--line);
     flex: 0 0 auto;
-    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pane-label {
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
   }
+  #reflow-toggle {
+    flex: 0 0 auto;
+    padding: 2px 9px;
+    font-size: 0.95em;
+    text-transform: none;
+    letter-spacing: 0;
+    border-radius: 999px;
+  }
+  #reflow-toggle.on { background: var(--accent); border-color: var(--accent); color: #fff; }
   .doc {
     flex: 1 1 auto;
     min-height: 0;
@@ -269,7 +285,7 @@
 </head>
 <body>
 <header id="topbar" hidden>
-  <div class="brand">DingDuff <span>Cite-Check</span></div>
+  <div class="brand"><img id="brand-icon" alt="" aria-hidden="true" width="20" height="20">DingDuff <span>Cite-Check</span></div>
   <div id="memo-name"></div>
   <div id="progress" class="chip"></div>
   <input id="reviewer" placeholder="Reviewer (initials/email)" autocomplete="off">
@@ -282,7 +298,7 @@
 <div id="chips" hidden></div>
 <main hidden id="main">
   <section id="memo-pane">
-    <div class="pane-head" id="memo-head">Memo</div>
+    <div class="pane-head" id="memo-head"><span class="pane-label" id="memo-label">Memo</span></div>
     <div id="memo-body" class="doc"></div>
   </section>
   <section id="right-pane">
@@ -308,7 +324,10 @@
       </div>
       <textarea id="note" placeholder="Reviewer note (optional)"></textarea>
     </div>
-    <div class="pane-head" id="source-head">Source</div>
+    <div class="pane-head" id="source-head">
+      <span class="pane-label" id="source-label">Source</span>
+      <button id="reflow-toggle" title="Collapse hard-wrapped line breaks in the source text for easier reading. Highlights and exact wording are unchanged; toggle off to see the file's original line breaks.">↵ Reflow</button>
+    </div>
     <div id="source-body" class="doc"></div>
   </section>
 </main>
@@ -334,6 +353,9 @@
   "use strict";
 
   var $ = function (id) { return document.getElementById(id); };
+
+  // DingDuff brand mark (George), inlined so the viewer stays self-contained.
+  var DOG_ICON = "data:image/png;base64,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";
 
   // ------------------------------------------------------------------
   // Boot: decide payload source (standalone bundle vs MCP host bridge)
@@ -390,6 +412,7 @@
     storageKey = "citecheck:" + src.cites.memo.sha256;
 
     $("mcp-waiting").hidden = true;
+    $("brand-icon").src = DOG_ICON;
     $("topbar").hidden = false;
     $("chips").hidden = false;
     $("main").hidden = false;
@@ -407,7 +430,7 @@
     if (src.priorReview) { applyImportedReview(src.priorReview, false); }
 
     $("memo-name").textContent = src.cites.memo.path;
-    $("memo-head").textContent = "Memo — " + src.cites.memo.path;
+    $("memo-label").textContent = "Memo — " + src.cites.memo.path;
 
     if (src.build.forced && src.build.mismatches.length) {
       var b = $("banner");
@@ -492,11 +515,45 @@
   }
 
   // ---------------- rendering: source pane ----------------
+  // Source text from scraped opinions often arrives hard-wrapped at ~80
+  // columns and double-spaced. Reflow collapses single (hard-wrap) line
+  // breaks to spaces while preserving blank-line paragraph breaks, so the
+  // pane reads like prose. Off → the file's exact line breaks. WORDS are
+  // never changed, so highlight spans and verbatim wording are untouched.
+  var reflowOn = (function () {
+    try { return localStorage.getItem("citecheck:reflow") !== "off"; }
+    catch (e) { return true; }
+  })();
+
+  function reflowText(t) {
+    if (!reflowOn) { return t; }
+    return t
+      .replace(/[ \t\f\v]+/g, " ")          // collapse horizontal whitespace
+      .replace(/\s*\n\s*\n\s*/g, "\u0000")  // 2+ newlines = paragraph break
+      .replace(/\s*\n\s*/g, " ")            // lone newline = hard wrap -> space
+      .replace(/\u0000/g, "\n\n");          // restore paragraph breaks
+  }
+
+  function syncReflowButton() {
+    var btn = $("reflow-toggle");
+    btn.classList.toggle("on", reflowOn);
+    btn.textContent = reflowOn ? "↵ Reflow: on" : "↵ Reflow: off";
+  }
+
+  function toggleReflow() {
+    reflowOn = !reflowOn;
+    try { localStorage.setItem("citecheck:reflow", reflowOn ? "on" : "off"); }
+    catch (e) { /* ignore */ }
+    syncReflowButton();
+    sourceCache = {};                        // cached DOM was reflowed; rebuild
+    if (current) { renderSource(byId[current].source, current); }
+  }
+
   function renderSource(key, focusCid) {
     var body = $("source-body");
     var meta = src.cites.sources[key] || {};
     var label = meta.case_name || meta.citation || key;
-    $("source-head").textContent = "Source — " + label +
+    $("source-label").textContent = "Source — " + label +
       (meta.path ? " (" + meta.path + ")" : "");
     body.replaceChildren();
     anchorEls = {};
@@ -544,12 +601,17 @@
           container.appendChild(x);
         });
         doc.segments.forEach(function (seg) {
+          // reflow is display-only and offset-safe: anchor (mark) boundaries
+          // sit on non-whitespace quote characters, so a hard-wrap whitespace
+          // run never straddles two segments — collapsing within each segment
+          // can't move a highlight relative to its words.
+          var text = reflowText(seg.text);
           if (!seg.marks || !seg.marks.length) {
-            container.appendChild(document.createTextNode(seg.text));
+            container.appendChild(document.createTextNode(text));
             return;
           }
           var m = document.createElement("mark");
-          m.textContent = seg.text;
+          m.textContent = text;
           m.dataset.marks = seg.marks.join(" ");
           seg.marks.forEach(function (mk) {
             (anchors[mk] = anchors[mk] || []).push(m);
@@ -935,7 +997,14 @@
     table.appendChild(tbody);
 
     var reviewed = citations.length - counts["❓"];
-    box.appendChild(el("h1", null, "Citation Verification Audit Log"));
+    var auditH1 = el("h1");
+    var auditIcon = document.createElement("img");
+    auditIcon.src = DOG_ICON; auditIcon.alt = ""; auditIcon.width = 22;
+    auditIcon.height = 22; auditIcon.style.verticalAlign = "-3px";
+    auditIcon.style.marginRight = "7px";
+    auditH1.appendChild(auditIcon);
+    auditH1.appendChild(document.createTextNode("DingDuff Citation Verification Audit Log"));
+    box.appendChild(auditH1);
     box.appendChild(el("div", "meta",
       "Memo: " + src.cites.memo.path + " · " + reviewed + "/" + citations.length +
       " citations attorney-reviewed · ✅ " + counts["✅"] + " · ⚠️ " + counts["⚠️"] +
@@ -963,6 +1032,8 @@
   function wireControls() {
     $("export-btn").addEventListener("click", exportReview);
     $("audit-btn").addEventListener("click", printAuditLog);
+    $("reflow-toggle").addEventListener("click", toggleReflow);
+    syncReflowButton();
     $("import-btn").addEventListener("click", function () { $("import-file").click(); });
     $("import-file").addEventListener("change", function (ev) {
       if (ev.target.files && ev.target.files[0]) { importReviewFile(ev.target.files[0]); }
