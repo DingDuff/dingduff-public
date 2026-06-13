@@ -8,7 +8,7 @@
     {
       "name": "dingduff",
       "source": "./plugins/dingduff",
-      "description": "DingDuff legal workflow skills. Includes /dingduff:dingduff-citation-check, which verifies every citation in a drafted memo against DingDuff-stored opinion and statute sources and opens an attorney review panel. Requires the DingDuff MCP connector."
+      "description": "DingDuff legal research & workflow skills for Claude: case-law research (standard and deep), deep statutory research, and citation verification (/dingduff:dingduff-citation-check) against DingDuff-stored opinion and statute sources. Requires the DingDuff MCP connector."
     }
   ]
 }
