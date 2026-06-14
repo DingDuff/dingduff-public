@@ -715,8 +715,14 @@
     var matchBadge = $("card-match");
     if (matches.length) {
       matchBadge.hidden = false;
-      matchBadge.textContent = matches.indexOf("normalized") === -1
-        ? "exact match" : "normalized match";
+      // Both are verified word-for-word quotes; "formatting differs" flags only
+      // cosmetic differences (punctuation, spacing, line breaks, quote marks).
+      var normalized = matches.indexOf("normalized") !== -1;
+      matchBadge.textContent = normalized ? "Verbatim (formatting differs)" : "Verbatim";
+      matchBadge.title = normalized
+        ? "Same wording as the source, but with cosmetic differences in " +
+          "punctuation, spacing, line breaks, or quote marks — not a paraphrase."
+        : "This passage appears in the source word-for-word.";
     } else { matchBadge.hidden = true; }
     $("card-meta").textContent =
       (c.pin ? "pin: " + c.pin + " · " : "") + c.support_type;
@@ -948,7 +954,7 @@
   function anchoredLabel(c) {
     if (c.status === "anchored") {
       var allExact = (c.anchors || []).every(function (a) { return a.match === "exact"; });
-      return "✓ (" + (allExact && c.anchors.length ? "exact" : "normalized") + ")";
+      return allExact && c.anchors.length ? "✓ Verbatim" : "✓ Verbatim (formatting differs)";
     }
     if (c.status === "no_quote_claimed") { return "— no quote claimed"; }
     var reason = c.failure_reason || "failed";
