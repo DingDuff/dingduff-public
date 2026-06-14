@@ -59,11 +59,15 @@ def _load_json(path: Path, what: str) -> Dict[str, Any]:
 
 def source_label(src: Dict[str, Any]) -> str:
     """Human label for a source row: case name + reporter cite for opinions,
-    official citation (or code § section) for statutes."""
+    official citation (or code § section) for statutes, title (kind) for
+    attorney-supplied documents. Kept in lockstep with the viewer's sourceLabel."""
     if src.get("type") == "opinion":
         name = src.get("case_name") or f"cluster {src.get('cluster_id', '?')}"
         cite = src.get("citation")
         return f"{name}, {cite}" if cite else name
+    if src.get("type") == "document":
+        label = src.get("title") or "supplied document"
+        return f"{label} ({src['kind']})" if src.get("kind") else label
     cite = src.get("citation")
     if cite:
         return cite
