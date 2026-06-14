@@ -76,9 +76,11 @@ def source_label(src: Dict[str, Any]) -> str:
 def anchored_label(citation: Dict[str, Any]) -> str:
     status = citation.get("status")
     if status == "anchored":
+        # Both are verified word-for-word quotes; "formatting differs" flags
+        # only cosmetic differences (punctuation/spacing/line breaks/quote
+        # marks). Keep these strings in lockstep with the viewer's anchoredLabel.
         matches = {a.get("match") for a in citation.get("anchors", [])}
-        kind = "exact" if matches == {"exact"} else "normalized"
-        return f"✓ ({kind})"
+        return "✓ Verbatim" if matches == {"exact"} else "✓ Verbatim (formatting differs)"
     if status == "no_quote_claimed":
         return "— no quote claimed"
     reason = citation.get("failure_reason") or "failed"
