@@ -34,7 +34,7 @@ your skill picker.
 
 ### Citation checking
 
-- **`dingduff-citation-check`** (v1.7) — after you draft a memo (Markdown, **Word, or
+- **`dingduff-citation-check`** (v1.8) — after you draft a memo (Markdown, **Word, or
   Google Docs**), verifies every citation against the opinion and statute files
   you saved **plus any other source you supply** — a Restatement section, a case
   missing from CourtListener, the other side's brief, a factual PDF — and opens a
