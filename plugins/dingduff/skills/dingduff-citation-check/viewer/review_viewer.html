@@ -3,9 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Opts the page into both color schemes so browsers theme native form
+     controls (scrollbars, date pickers, focus rings) for the matching mode. -->
+<meta name="color-scheme" content="light dark">
+<script>
+  // Apply the OS theme to <html data-theme="..."> BEFORE first paint to avoid
+  // a flash of the wrong mode. The MCP App host (if present) overrides this
+  // later via hostContext on ui/initialize / ui/notifications/host-context-
+  // changed; that's the load-bearing path inside Claude — `prefers-color-
+  // scheme` on an iframe reads the OS, not Claude's in-app theme.
+  (function () {
+    try {
+      var dark = window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute(
+        "data-theme", dark ? "dark" : "light");
+    } catch (e) { /* leave the attribute unset; CSS default (light) applies */ }
+  })();
+</script>
 <title>DingDuff Cite-Check Review</title>
 <style>
   :root {
+    color-scheme: light dark;
     --bg: #f7f6f3;
     --pane: #ffffff;
     --ink: #1a1a1a;
@@ -22,7 +41,59 @@
     --card-bg: #eaf2fc;
     --hl: #fff3b0;
     --hl-current: #ffd66e;
+    /* Tokens for previously-hardcoded contextual colors, kept here so the
+       dark-mode override below has a single place to retune them. */
+    --reviewer-needed-bg: #fdecea;
+    --reviewer-needed-fg: #c0392b;
+    --cite-current-bg: #e7eefb;
+    --input-bg: #ffffff;
+    --search-hl-bg: #bfe1ff;
+    --search-hl-current-bg: #4ea2f7;
+    --search-hl-current-fg: #ffffff;
+    /* Text color used ON saturated status fills (primary button, verdict
+       buttons, reflow toggle). Light fills in dark mode flip this dark. */
+    --on-status-fg: #ffffff;
     font-size: 15px;
+  }
+
+  /* Dark mode keys off [data-theme="dark"] on <html> — set by the inline
+     bootstrap in <head> from prefers-color-scheme, then overridden by the
+     MCP App host's hostContext.theme when this panel is embedded in Claude.
+     prefers-color-scheme on an iframe reads the OS, not Claude's in-app
+     theme, so we cannot rely on a @media (prefers-color-scheme: dark) query
+     here — it would miss the host-theme case that motivates this whole
+     block. Same token names, retuned for legibility on a dark canvas:
+     status colors stay semantically obvious (green = verified, red =
+     rejected, amber = needs attention), highlights become deep tints so
+     the document's light ink reads on top, and the DingDuff blue is
+     lifted for contrast. */
+  :root[data-theme="dark"] {
+    --bg: #141414;
+    --pane: #1e1e1e;
+    --ink: #ececec;
+    --muted: #9a9a9a;
+    --line: #2a2a2a;
+    --accent: #7ab1ee;
+    --green: #5dd47e;
+    --green-bg: #1c3a26;
+    --red: #ff8579;
+    --red-bg: #3a1c19;
+    --amber: #f0c060;
+    --amber-bg: #36281a;
+    --gray-bg: #1a1a1a;
+    --card-bg: #1b2434;
+    --hl: #5a4a14;
+    --hl-current: #8a6b1f;
+    --reviewer-needed-bg: #3a1c19;
+    --reviewer-needed-fg: #ff8579;
+    --cite-current-bg: #1f2c45;
+    --input-bg: #252525;
+    --search-hl-bg: #1f3a55;
+    --search-hl-current-bg: #3a7dc9;
+    --search-hl-current-fg: #ffffff;
+    /* Status fills are LIGHTER in dark mode, so flip the on-fill text dark
+       (white-on-pale-green is unreadable; near-black on pale green pops). */
+    --on-status-fg: #0e0e0e;
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
@@ -73,8 +144,9 @@
     border-radius: 6px;
     font-size: 0.9em;
   }
-  #reviewer.needed { border-color: #c0392b; background: #fdecea; }
-  #reviewer.needed::placeholder { color: #c0392b; }
+  #reviewer { background: var(--input-bg); color: var(--ink); }
+  #reviewer.needed { border-color: var(--reviewer-needed-fg); background: var(--reviewer-needed-bg); }
+  #reviewer.needed::placeholder { color: var(--reviewer-needed-fg); }
   @keyframes reviewer-nudge {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-4px); }
@@ -90,7 +162,7 @@
     font-size: 0.9em;
   }
   button:hover { border-color: var(--accent); }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-status-fg); }
   #banner {
     background: var(--red-bg);
     color: var(--red);
@@ -159,7 +231,7 @@
     letter-spacing: 0;
     border-radius: 999px;
   }
-  #reflow-toggle.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #reflow-toggle.on { background: var(--accent); border-color: var(--accent); color: var(--on-status-fg); }
   .doc {
     flex: 1 1 auto;
     min-height: 0;
@@ -192,7 +264,7 @@
   }
   a.cite.failed { color: var(--red); text-decoration-style: dashed; }
   a.cite.noquote { color: var(--muted); text-decoration-style: dotted; }
-  a.cite.current { background: #e7eefb; outline: 1px solid var(--accent); border-radius: 2px; }
+  a.cite.current { background: var(--cite-current-bg); outline: 1px solid var(--accent); border-radius: 2px; }
   a.cite.v-verified { background: var(--green-bg); }
   a.cite.v-rejected { background: var(--red-bg); }
   a.cite.v-needs_attention { background: var(--amber-bg); }
@@ -225,15 +297,15 @@
   #card .meta { color: var(--muted); font-size: 0.85em; }
   #src-search-row { display: flex; align-items: center; gap: 6px; margin: 8px 0 2px; }
   #src-search { flex: 1 1 auto; min-width: 0; padding: 4px 8px; border: 1px solid var(--line);
-                border-radius: 6px; font-size: 0.88em; background: #fff; }
+                border-radius: 6px; font-size: 0.88em; background: var(--input-bg); color: var(--ink); }
   #src-search-count { color: var(--muted); font-size: 0.8em; white-space: nowrap;
                       min-width: 34px; text-align: right; }
   #src-search-row button { padding: 1px 8px; font-size: 1.05em; line-height: 1.3; }
   #src-search-row button:disabled { opacity: 0.4; cursor: default; }
   /* find-in-source matches (CSS Custom Highlight API) — distinct blue, so they
      never get confused with the yellow anchor highlights. */
-  ::highlight(cc-search) { background-color: #bfe1ff; }
-  ::highlight(cc-search-current) { background-color: #4ea2f7; color: #fff; }
+  ::highlight(cc-search) { background-color: var(--search-hl-bg); }
+  ::highlight(cc-search-current) { background-color: var(--search-hl-current-bg); color: var(--search-hl-current-fg); }
   #card .fail-note, #card .stale-note {
     background: var(--red-bg); color: var(--red);
     border-radius: 6px; padding: 8px 10px; margin: 8px 0; font-size: 0.9em;
@@ -241,9 +313,9 @@
   #card .stale-note { background: var(--amber-bg); color: var(--amber); }
   #verdicts { display: flex; gap: 8px; margin: 10px 0 6px; flex-wrap: wrap; align-items: center; }
   #verdicts button { font-size: 0.88em; }
-  #verdicts button.on-verified { background: var(--green); border-color: var(--green); color: #fff; }
-  #verdicts button.on-rejected { background: var(--red); border-color: var(--red); color: #fff; }
-  #verdicts button.on-needs_attention { background: var(--amber); border-color: var(--amber); color: #fff; }
+  #verdicts button.on-verified { background: var(--green); border-color: var(--green); color: var(--on-status-fg); }
+  #verdicts button.on-rejected { background: var(--red); border-color: var(--red); color: var(--on-status-fg); }
+  #verdicts button.on-needs_attention { background: var(--amber); border-color: var(--amber); color: var(--on-status-fg); }
   #nav-btns { margin-left: auto; display: flex; gap: 6px; }
   #note {
     width: 100%;
@@ -254,6 +326,8 @@
     font-family: inherit;
     font-size: 0.9em;
     resize: vertical;
+    background: var(--input-bg);
+    color: var(--ink);
   }
   #footer {
     flex: 0 0 auto;
@@ -1687,6 +1761,42 @@
     if (box) { box.textContent = text; }
   }
 
+  // ---------------- theme (data-theme attribute on <html>) ----------------
+  // The inline bootstrap in <head> set data-theme from prefers-color-scheme
+  // before paint. Inside an MCP App host (Claude), prefers-color-scheme on
+  // an iframe reads the OS — not Claude's in-app theme — so we also accept
+  // the host's hostContext.theme (delivered in the ui/initialize result and
+  // in subsequent ui/notifications/host-context-changed updates, per the
+  // MCP Apps spec). Host wins; once we've seen one host theme, OS changes
+  // are ignored for the rest of the session.
+  var hostThemeReceived = false;
+  var themeMql = window.matchMedia
+    ? window.matchMedia("(prefers-color-scheme: dark)")
+    : null;
+
+  function applyTheme(theme) {
+    if (theme !== "light" && theme !== "dark") { return; }
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+
+  function applyHostContext(ctx) {
+    // McpUiHostContext.theme is optional, and partial updates (host-context-
+    // changed) only carry changed fields; skip when not present.
+    if (ctx && (ctx.theme === "light" || ctx.theme === "dark")) {
+      hostThemeReceived = true;
+      applyTheme(ctx.theme);
+    }
+  }
+
+  // OS-theme changes still apply in the standalone bundle (no host) and in
+  // hosts that never send a theme. Once any host theme arrives, we stop
+  // tracking the OS so the host stays authoritative.
+  if (themeMql && themeMql.addEventListener) {
+    themeMql.addEventListener("change", function (ev) {
+      if (!hostThemeReceived) { applyTheme(ev.matches ? "dark" : "light"); }
+    });
+  }
+
   function initMcp() {
     if (window.parent === window) { return; }  // not embedded: leave waiting screen
     var bridge = createBridge();
@@ -1717,13 +1827,22 @@
     bridge.on("ui/notifications/tool-cancelled", function () {
       showMcpStatus("The tool call was cancelled.");
     });
+    bridge.on("ui/notifications/host-context-changed", function (params) {
+      // McpUiHostContextChangedNotification: a partial McpUiHostContext;
+      // theme may be in this update (toggle) or not (other field changed).
+      applyHostContext(params || {});
+    });
     bridge.onRequest("ui/resource-teardown", function () { return {}; });
 
     bridge.request("ui/initialize", {
       protocolVersion: "2026-01-26",
       capabilities: {},
       clientInfo: { name: "dingduff-citecheck-review", version: "1.0.0" }
-    }).then(function () {
+    }).then(function (result) {
+      // Initial hostContext (incl. theme) ships in the ui/initialize result;
+      // apply it before declaring init done so the panel paints in the right
+      // theme on first render rather than flipping a tick later.
+      if (result && result.hostContext) { applyHostContext(result.hostContext); }
       hostInitialized = true;
       bridge.notify("ui/notifications/initialized", {});
       maybeStart();
