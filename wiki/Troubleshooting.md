@@ -41,6 +41,11 @@ download silently fails.
 > [Team & Enterprise](Team-and-Enterprise). More detail in
 > [Browser Setup](Browser-Setup).
 
+> **Can't change these settings** (a locked-down work account)? Use the
+> **BYOK / API key (Legacy)** path instead — an Anthropic API key on your
+> dingduff.com profile enables back-end tools that read case material without
+> downloading files. See [Install → BYOK / API key](Home).
+
 ---
 
 ## You can't find "Add custom connector"
@@ -56,26 +61,6 @@ connectors, or (on **Free**) you've hit the one-custom-connector limit.
   [Team & Enterprise](Team-and-Enterprise) for the exact steps to send them.
 - **Free plan:** Free accounts allow only **one** custom connector. Remove an
   existing one, or upgrade to Pro/Max for more.
-
----
-
-## `opinion_extract` or `submit_batch_screen` is missing or fails
-
-**Symptom:** Most DingDuff tools work, but `opinion_extract` and/or
-`submit_batch_screen` are missing or error out.
-
-**Cause:** These two tools require your **own Anthropic API key (BYOK)**. They stay
-locked until you add it.
-
-**Fix:**
-1. Get an Anthropic API key from the **Claude Console** (console.anthropic.com) —
-   add a payment method and create a key. (You can ask Claude to walk you through
-   this.)
-2. Log in to your **profile on dingduff.com** and paste the key in.
-3. In a chat, confirm: *"Does the DingDuff connector have the `opinion_extract`
-   tool?"*
-
-Use a **dedicated** key and **turn off auto-reload** (required by our Terms).
 
 ---
 

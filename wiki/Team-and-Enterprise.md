@@ -40,8 +40,7 @@ Once the Owner has done this, each member connects on their own:
 2. Find **DingDuff** in the list and click **Connect**.
 3. Sign in with your **DingDuff** email and password (from dingduff.com).
 
-Then continue with [Install DingDuff → Step 3](Home) (allow the tools, add your
-API key).
+Then continue with [Install DingDuff → Step 3](Home) (allow the tools).
 
 ## If the connector connects but tools are blocked
 
@@ -62,6 +61,12 @@ is often controlled centrally. If downloads fail, ask your admin:
 > can download legal sources and run citation checks.
 
 Note: capability changes usually apply only to **new** chat sessions.
+
+**If your admin won't (or can't) enable those**, you can still use DingDuff via
+the **BYOK / API key (Legacy)** path — add your own Anthropic API key to your
+dingduff.com profile to turn on back-end tools (`opinion_extract`,
+`submit_batch_screen`, `retrieve_batch_screen`) that let Claude read case material
+without downloading anything. See [Install → BYOK / API key](Home).
 
 ## Still stuck?
 
