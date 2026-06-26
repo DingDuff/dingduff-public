@@ -104,13 +104,19 @@
   html, body { height: 100%; }
   body {
     margin: 0;
-    background: var(--bg);
+    /* Transparent by default so the MCP App host's panel container shows
+       through (per Anthropic's transparent-theming spec). Inner panes paint
+       themselves with --pane/--card-bg/etc., so the visible canvas is
+       unchanged when content is loaded. The standalone-bundle path sets
+       data-standalone on body and restores the opaque --bg canvas below. */
+    background: transparent;
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
+  body[data-standalone] { background: var(--bg); }
   header#topbar {
     display: flex;
     align-items: center;
@@ -162,6 +168,13 @@
     border: 1px solid var(--line);
     border-radius: 6px;
     background: var(--pane);
+    /* Form controls don't inherit `color` from <body>, so without this the
+       browser uses its system color for button text. With color-scheme:
+       light dark on :root, that means the OS theme wins — and when Claude
+       forces this panel light over a dark OS, the white --pane gets
+       white-ish system text and the label vanishes. Pin to --ink so the
+       cascade beats the browser default. */
+    color: var(--ink);
     cursor: pointer;
     font-size: 0.9em;
   }
@@ -516,6 +529,7 @@
     var payload = null;
     try { payload = JSON.parse($("citecheck-payload").textContent); } catch (e) {}
     if (payload && payload.mode === "standalone") {
+      document.body.dataset.standalone = "true";
       startApp(makeStandaloneSource(payload));
     } else {
       // MCP App mode: no embedded payload — data arrives over the host
