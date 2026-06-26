@@ -10,6 +10,8 @@ legal-workflow skills for Claude. These skills are built to work with the
 | Skill | What it does |
 |-------|--------------|
 | `dingduff-legal-research` | Legal research end-to-end — finds, retrieves, reads, and validates controlling cases, statutes, and regulations; maps the citation network and statutory landscape; confirms everything is still good law. Replaces the former case-law (standard/deep) and statute-research skills. |
+| `dingduff-legal-analysis` | Reasoning engine — frames legal issues, synthesizes the governing rule, analyzes the facts, organizes the proof (CRAC/CREAC), and deploys authority. Use before drafting any memo, brief, motion, or letter. Pairs with the research and writing skills. |
+| `dingduff-legal-writing` | Drafts and revises legal documents — office memos, trial-court motion briefs, appellate briefs, demand letters, and client advice letters — and runs craft passes (organize, persuade, edit for clarity). Builds on `dingduff-legal-analysis`. |
 | `dingduff-citation-check` | After you draft a memo (Markdown, Word, or Google Docs), verifies every citation against your stored opinions and statutes plus any other sources you supply (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF), and opens an attorney review panel. |
 | `dingduff-legal-citation-format` | Formats citations in practitioner / brief style (cases, statutes, signals, pincites, short forms, quotations). Form only — pair with the research / cite-check skills for verification. Standalone (no connector required). |
 
@@ -26,7 +28,9 @@ legal-workflow skills for Claude. These skills are built to work with the
 1. Download the skill(s) you want from [`dist/`](dist/) (open the file and use the
    **Download raw file** button):
    - [`dingduff_legal-research_v2.1.skill`](dist/dingduff_legal-research_v2.1.skill)
-   - [`dingduff_citation-check_v2.1.skill`](dist/dingduff_citation-check_v2.1.skill)
+   - [`dingduff_legal-analysis_v1.2.skill`](dist/dingduff_legal-analysis_v1.2.skill)
+   - [`dingduff_legal-writing_v1.2.skill`](dist/dingduff_legal-writing_v1.2.skill)
+   - [`dingduff_citation-check_v2.2.skill`](dist/dingduff_citation-check_v2.2.skill)
    - [`dingduff_legal-citation-format_v1.4.skill`](dist/dingduff_legal-citation-format_v1.4.skill)
 2. In Claude, open your **Skills** settings:
    - **Cowork (desktop):** Customize (upper right) → **Skills** → upload skill
