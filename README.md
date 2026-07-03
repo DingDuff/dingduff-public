@@ -263,13 +263,13 @@ confirm this when you accept the [Terms of Service](https://dingduff.com/terms))
 
 > *"DingDuff is a game changer and I honestly can't imagine practicing without
 > it. It has completely changed legal research for me from a slog to something I
-> can complete in minutes. I was never good at using boolean searches, and even
-> after spending hours doing research I was always worried I was missing
-> something. Even Westlaw's AI, while helpful, is still regularly incomplete or
-> inaccurate. DingDuff is giving me confidence in my ability to do legal research
-> quickly and thoroughly, and I use it daily in my practice. I also regularly get
-> partner feedback that they are blown away by the research memos I put together
-> using DingDuff and Claude. I can't imagine going back to a world without it."*
+> can complete in minutes. Even after spending hours doing research I was always
+> worried I was missing something. And Westlaw's AI, while helpful, is still
+> regularly incomplete or inaccurate. DingDuff is giving me confidence in my
+> ability to do legal research quickly and thoroughly, and I use it daily in my
+> practice. I also regularly get partner feedback that they are blown away by the
+> research memos I put together using DingDuff and Claude. I can't imagine going
+> back to a world without it."*
 > — **Laura Bach**, Litigator
 
 > *"DingDuff is a must‑have for every litigator. Instead of spending hours
