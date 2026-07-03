@@ -1,6 +1,6 @@
 {
   "name": "dingduff",
-  "description": "Client-side legal research and workflow skills for DingDuff users: legal research (find, read, and validate cases, statutes, and regulations), legal analysis (frame issues, synthesize rules, structure proof), legal writing (draft memos, briefs, motions, demand and client letters), citation verification of Markdown/Word/Google Docs memos against stored sources plus attorney-supplied documents, and practitioner-style citation formatting.",
+  "description": "Client-side legal research and workflow skills for DingDuff users: legal research (find, read, and validate cases, statutes, and regulations), legal analysis (frame issues, synthesize rules, structure proof), citation verification of Markdown/Word/Google Docs memos against stored sources plus attorney-supplied documents, and practitioner-style citation formatting.",
   "version": "0.8.0",
   "author": {
     "name": "DingDuff"

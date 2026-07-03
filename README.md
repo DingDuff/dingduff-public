@@ -168,7 +168,7 @@ the work.
 ## The skills library
 
 DingDuff works well on its own. These **free skills** make it noticeably better —
-they teach Claude the craft of legal research, analysis, writing, and
+they teach Claude the craft of legal research, analysis, and
 cite‑checking. Each is a one‑time download that you upload to Claude once; it then
 lives in your skill picker and triggers automatically when relevant.
 
@@ -176,14 +176,13 @@ lives in your skill picker and triggers automatically when relevant.
 |-------|:---:|--------------|
 | **Legal Research** — [`download`](dist/dingduff_legal-research_v2.1.skill) | v2.1 | End‑to‑end research: finds, retrieves, reads, and **validates** the controlling cases, statutes, and regulations; maps the citation network and statutory landscape; confirms everything is still good law. Scales from a quick "what's the law on X" to a full doctrinal map. |
 | **Legal Analysis** — [`download`](dist/dingduff_legal-analysis_v1.2.skill) | v1.2 | The reasoning engine: frames the issues, synthesizes the governing rule, analyzes the facts against it, organizes the proof (CRAC/CREAC), and deploys authority. Use before drafting anything. |
-| **Legal Writing** — [`download`](dist/dingduff_legal-writing_v1.2.skill) | v1.2 | Drafts and revises documents — office memos, trial‑court and appellate briefs, demand and client‑advice letters — and runs craft passes for organization, persuasion, and clarity. Builds on Legal Analysis. |
 | **Citation Check** — [`download`](dist/dingduff_citation-check_v2.3.skill) | v2.3 | After you draft a memo (Markdown, Word, or Google Docs), verifies every citation against your stored sources plus anything else you supply, then opens an interactive attorney review panel and records your verdicts. |
 | **Legal Citation Format** — [`download`](dist/dingduff_legal-citation-format_v1.4.skill) | v1.4 | Formats citations the way courts expect — signals, pincites, short forms (*id.*/*supra*), string cites, block quotes. Follows *The Indigo Book*. Form only; works standalone (no connector needed). |
 
-The research, analysis, and writing skills are designed to work **together**:
-research gathers the authority, analysis reasons through the question, and writing
-turns the result into a finished document. Citation Check verifies the work
-product; Legal Citation Format polishes the cites.
+The research and analysis skills are designed to work **together**: research
+gathers the authority, and analysis reasons through the question to build the
+proof. Citation Check then verifies your finished work product; Legal Citation
+Format polishes the cites.
 
 **Install a skill:** download the `.skill` file above (on GitHub, open the file
 and use **Download raw file**), then upload it to Claude —
