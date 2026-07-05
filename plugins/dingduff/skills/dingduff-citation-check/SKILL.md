@@ -1,6 +1,6 @@
 ---
 name: dingduff-citation-check
-description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, opens the interactive attorney review panel (or a standalone review.html), and records the attorney's verdicts in review.json. (v2.3)
+description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html) for the attorney to review. (v2.4)
 ---
 
 # Cite-Check: verify a memo's citations against stored sources
@@ -200,7 +200,30 @@ Fix proposals and re-run. MAXIMUM 2 retries; anything still failing stays
 working as designed, not something to hide). `source_missing` entries are
 not retryable.
 
-## Step 6 — Open the attorney review
+## Step 6 — Sanity and quality check the anchors
+
+After you have applied the first round of anchors, do a sanity and quality
+check on the anchors. For each anchor ask, is this really the right part of the
+case or source? Does this part of the source actually say, in context, what it
+is being cited for? Is the quoted part of the case the court's actual holding,
+or merely a discussion of the parties' positions? Did I highlight all of the
+relevant material?
+
+Before you present the review panel to the attorney, take the opportunity to
+correct any citation anchors which may be misplaced so the attorney can review
+the most relevant parts of the case for each citation. Common errors needing
+correction include: (a) highlighting a party's position as the holding of the
+court; (b) including less content than is needed to show how a source supports
+a claim.
+
+The goal of an anchor is to substantiate a citation based on the substance of a
+source. Shift anchors as needed to prioritize substance over form.
+
+To act on this pass, edit the affected entries in `.cite-check/proposals.json`
+(swap or widen the `anchors_proposed` quotes) and re-run the verifier from
+Step 5 so the shifted anchors are re-validated before the panel opens.
+
+## Step 7 — Open the attorney review
 
 Call the `citecheck_review` MCP tool with:
 - `memo_text`: the memo file content, passed VERBATIM (do not re-wrap,
@@ -228,7 +251,7 @@ LEAD with the fallback — tell the user to open `review.html` in a browser
 rather than waiting for a panel that won't appear. Otherwise mention
 review.html as the backup if no panel appears above.
 
-## Step 7 — Summarize for the attorney
+## Step 8 — Summarize for the attorney
 
 Give a compact table: id · citation · source · status · match quality ·
 warnings. Then explicitly call out, in prose:
@@ -241,29 +264,3 @@ warnings. Then explicitly call out, in prose:
 Explain next steps: review each citation in the panel (j/k to move, 1–3 for
 verdicts), then click "Send review to Claude" (panel) or "Export
 review.json" (standalone).
-
-## Step 8 — Record the verdicts
-
-When the attorney finishes, the panel sends a message containing a fenced
-```json review.json block. Save it VERBATIM as `review.json` in the project
-root (next to cites.json). Confirm the save and summarize the verdicts —
-especially any `rejected` (‼️) or `needs_attention` (⚠️) citations, which need
-memo revisions. After revising the memo, re-run /cite-check; verdicts whose
-citation and proposition are unchanged carry forward automatically.
-
-## Step 9 — Generate the audit log
-
-After review.json is saved, generate the printable audit record:
-
-```
-python3 <skill-dir>/scripts/build_audit.py --cites cites.json \
-    --review review.json --out cite-check-audit.html
-```
-
-Tell the attorney `cite-check-audit.html` is ready — it prints on landscape
-letter paper and records, per citation: the source, the proposition, whether
-the verifier anchored it, the attorney's verdict (✅ ⚠️ ‼️ ❓), the review
-note, and the reviewer — plus an integrity footer (memo hash, verification
-provenance). This is the firm's record that the work product was checked.
-If the user wants the audit before any attorney review, run it without
-`--review` (all rows show ❓).

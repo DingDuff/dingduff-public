@@ -89,6 +89,10 @@ as possible:
    authorities; for anything else, drop a text copy into your working folder.
 3. **Ask Claude to cite-check it** (e.g., *"cite-check this brief"*). Claude reads
    your draft, lines each citation up with its source, and runs the local verifier.
+   Before opening the panel, it also does a **substance check** on each highlighted
+   passage — making sure it's the on-point part of the source (the court's holding,
+   not a party's position) with enough context to actually support the point — so
+   you review the most relevant excerpt for every cite.
 4. **Review in the panel.** Step through each citation, read the highlighted support,
    and mark it verified / needs attention / rejected, adding a note where useful —
    then send your verdicts back.
