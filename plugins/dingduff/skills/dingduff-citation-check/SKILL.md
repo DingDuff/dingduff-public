@@ -1,9 +1,16 @@
 ---
 name: dingduff-citation-check
-description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html) for the attorney to review. (v2.4)
+description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.4.5)
 ---
 
 # Cite-Check: verify a memo's citations against stored sources
+
+> **Run this in a subagent.** A full cite-check reads every cited source end to
+> end and enumerates every citation instance — it is context-heavy. Delegate the
+> whole cite-check task to a subagent rather than loading this skill and all the
+> sources into the main context window. (The subagent can build
+> `proposals.json` / `cites.json` / `review.html`; open the `citecheck_review`
+> panel from the main thread so it renders for the attorney.)
 
 You orchestrate a propose-and-verify loop: YOU propose verbatim supporting
 quotes; a deterministic local script verifies them and computes anchors. A
