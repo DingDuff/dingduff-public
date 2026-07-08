@@ -1,6 +1,6 @@
 ---
 name: dingduff-legal-research
-description: Research the law on a question — find, retrieve, read, and validate the controlling cases, statutes, and regulations; map the citation network and the statutory landscape; and verify everything is still good law. Use for ANY legal-research task — "what's the law on X," "find cases/statutes on Y," "research precedent," "is this still good law," "map the statutory scheme," "what does § __ mean" — and as the authority-gathering step behind any analysis, memo, or brief. Research is thorough by default. It interleaves with dingduff-legal-analysis (analysis guides research; research guides analysis) and feeds dingduff-legal-writing. Method detail for case law, statutes, and validity lives in references/ and is loaded as needed. (v2.1)
+description: Research the law on a question — find, retrieve, read, and validate the controlling cases, statutes, and regulations; map the citation network and the statutory landscape; and verify everything is still good law. Use for ANY legal-research task — "what's the law on X," "find cases/statutes on Y," "research precedent," "is this still good law," "map the statutory scheme," "what does § __ mean" — and as the authority-gathering step behind any analysis, memo, or brief. Research is thorough by default. It interleaves with dingduff-legal-analysis (analysis guides research; research guides analysis) and feeds dingduff-legal-writing. Method detail for case law, statutes, and validity lives in references/ and is loaded as needed. (v2.2)
 ---
 
 # Legal Research
@@ -41,7 +41,7 @@ Thorough by default — but set the breadth to the question. A regime-mapping, b
 
 ## Local storage: saved cases / saved statutes
 
-When the user has connected a folder, create archive subfolders in it and save every retrieved opinion and section as markdown — a durable record for the user and a way for you to re-read without spending more tool calls.
+When the user has connected a folder, create archive subfolders in it and save every retrieved opinion and section as markdown — a durable record for the user and a way for you to re-read without spending more tool calls. For each opinion, **also save the CourtListener PDF alongside the markdown whenever one is available** (mechanism below).
 
 ```bash
 mkdir -p "<user_folder>/saved cases"
@@ -49,6 +49,20 @@ mkdir -p "<user_folder>/saved statutes"
 ```
 
 Naming: cases `<cluster_id>_<short_case_name>_<reporter_cite>.md` (e.g., `107252_miranda_v_arizona_384_US_436.md`); statutes `<jurisdiction>_<code>_<section>.md` (e.g., `us_18_usc_1001.md`). Sanitize: lowercase, spaces → underscores, strip punctuation except underscores/dots, "v." → "v". If no folder is available, fall back to inline retrieval (`opinion_view` / `codes_view`) and tell the user no archive was produced.
+
+### PDF copies (cases)
+
+In addition to the markdown, save the CourtListener PDF for each opinion when one exists — same base filename as the `.md`, with a `.pdf` extension (e.g., `107252_miranda_v_arizona_384_US_436.pdf`), in `saved cases/`. Note that `opinion_store` does **not** hand you a PDF link — the URL it returns is the markdown file — so resolve the PDF from the cluster:
+
+1. Take the `<cluster_id>` (from the `opinion_store` result, or the `cluster_id` / `absolute_url` in `opinion_search` / `courtlistener_full_search` results; `absolute_url` is the human page, `https://www.courtlistener.com<absolute_url>`).
+2. Look up the cluster's opinions on CourtListener: `https://www.courtlistener.com/api/rest/v4/opinions/?cluster=<cluster_id>`. In the JSON, a sub-opinion's `local_path` (when non-empty) is CourtListener's stored PDF at `https://storage.courtlistener.com/<local_path>`; `download_url` is the court's original source file. Prefer `local_path`, fall back to `download_url`.
+3. Download it next to the markdown:
+
+```bash
+curl -L "<pdf_url>" -o "<user_folder>/saved cases/<same_base_name>.pdf"
+```
+
+This is **best-effort and must never block research**: many older, text-only opinions have no PDF on CourtListener. When none is available (or the download fails), keep the markdown as the record and note "no PDF on CourtListener" for that case. The markdown — not the PDF — remains the text you read, quote, and cite from.
 
 ## Workflow
 

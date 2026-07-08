@@ -39,7 +39,7 @@ Read the collected sections and flag every phrase that is: **ambiguous on its fa
 
 This is a *bounded* pull — the judicial gloss on each flagged phrase, not a full citation network (that's `case-law.md` if it's warranted). For each phrase:
 - Search interpreting decisions, best by statutory cite + exact phrase: `opinion_search {"query":"\"Tex. Bus. Orgs. Code § 21.401\" AND \"interest of the corporation\"","court_types":"S,SA,F,FD","order_by":"-citeCount"}`. For state statutes focus on the state high court + intermediate appellate; for federal, SCOTUS + the relevant circuit (don't ignore federal courts construing state law in Erie posture).
-- Aim for **5–15 cases per phrase**, weighted to most-cited and most-recent. Triage from snippets; bulk-retrieve via `opinion_store`; save to `saved cases/`; read.
+- Aim for **5–15 cases per phrase**, weighted to most-cited and most-recent. Triage from snippets; bulk-retrieve via `opinion_store`; save to `saved cases/` (markdown + CourtListener PDF when available — see SKILL.md → *Local storage*); read.
 - Extract the gloss: the court's articulation of the phrase's meaning (test/elements/rule), a pinpoint quote, whether binding or persuasive, and any conflict in the set.
 - Validity-check each retained case (`validity.md`).
 - **Escalate** if a phrase turns out to sit on a sprawling, contested body of case law — say so and run the full case-law method on it as a focused follow-up rather than letting this silently become a network build.
