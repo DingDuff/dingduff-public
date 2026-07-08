@@ -22,7 +22,7 @@ Run 3–5 different strategies — each catches cases the others miss:
 
 Court-type codes: F = federal circuit, FD = federal district, FB = bankruptcy, S = state supreme, SA = state appellate, ST = state trial; SCOTUS = `court_ids: "scotus"`.
 
-Triage candidates from snippets (snippets are *only* for triage — see anti-hallucination). Bulk-retrieve the promising ones (up to 25 per call) via `opinion_store`; download each returned URL with `curl` into `saved cases/` (URLs expire in ~1 hour — regenerate if needed). Read each; note holdings/reasoning/quotable language, and mark every case it cites *on the focus issue* as a frontier candidate.
+Triage candidates from snippets (snippets are *only* for triage — see anti-hallucination). Bulk-retrieve the promising ones (up to 25 per call) via `opinion_store`; download each returned markdown URL with `curl` into `saved cases/` (URLs expire in ~1 hour — regenerate if needed), and also save a **PDF copy from CourtListener** alongside it whenever one exists (mechanism in SKILL.md → *Local storage*). Read each; note holdings/reasoning/quotable language, and mark every case it cites *on the focus issue* as a frontier candidate.
 
 ## 2. Backward tracing (ancestors → the anchor)
 
@@ -73,7 +73,7 @@ Role = Anchor / Primary / Supporting / Contrary / Pruned-but-considered. Sort by
 ## Tool quick reference
 
 - `opinion_search` / `courtlistener_full_search` — discovery.
-- `opinion_store` — bulk retrieval (1–25 cluster IDs); markdown URLs valid ~1 hr; save to `saved cases/`.
+- `opinion_store` — bulk retrieval (1–25 cluster IDs); markdown URLs valid ~1 hr; save the markdown to `saved cases/`, plus a PDF copy from CourtListener when available (SKILL.md → *Local storage*).
 - `opinion_view` — single-case inline retrieval (or from a reporter cite); good for a quick spot check.
 - `show_citing_opinions` — forward tracing and the workhorse of the overturn check.
 - `show_related_opinions` — topical sweep for cases the citation chains miss.

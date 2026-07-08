@@ -20,13 +20,13 @@ your skill picker.
 
 ### Legal research
 
-- **`dingduff-legal-research`** (v2.1) — one skill for legal research generally:
+- **`dingduff-legal-research`** (v2.2) — one skill for legal research generally:
   it finds, retrieves, reads, and **validates** the controlling cases, statutes,
   and regulations, maps the citation network and the statutory landscape, and
   confirms everything is still good law. Thorough by default, and scales from a
   quick "what's the law on X" to a full doctrinal map. (Replaces the older
   separate case-law standard/deep and statute-research skills.)
-  Download: [`dingduff_legal-research_v2.1.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-research_v2.1.skill)
+  Download: [`dingduff_legal-research_v2.2.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-research_v2.2.skill)
 
 ### Legal analysis
 
