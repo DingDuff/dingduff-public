@@ -90,6 +90,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     try:
+        if args.first_page < 1:
+            raise FatalError(
+                f"--first-page must be >= 1 (got {args.first_page}): "
+                "PAGE_MARKER_RE only recognizes positive page numbers, so "
+                "other values would emit markers that are NOT zero-width "
+                "to quote matching.")
         try:
             raw = Path(args.src).read_bytes().decode("utf-8")
         except OSError as exc:

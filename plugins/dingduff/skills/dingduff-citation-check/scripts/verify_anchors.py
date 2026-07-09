@@ -634,6 +634,14 @@ def run(proposals: Dict[str, Any], workdir: Path, max_gap: int,
     out_sources: Dict[str, Dict[str, Any]] = {}
     for key, src in proposals["sources"].items():
         entry = {k: src[k] for k in SOURCE_PASSTHROUGH_KEYS if k in src}
+        # render_hint is a published enum; an unknown value would emit a
+        # schema-invalid cites.json and silently do nothing in the viewer.
+        if "render_hint" in entry and entry["render_hint"] != "transcript":
+            warnings.append({"id": key, "code": "render_hint_invalid",
+                             "detail": f"unknown render_hint "
+                                       f"{entry['render_hint']!r} dropped "
+                                       "(valid: 'transcript')"})
+            del entry["render_hint"]
         if src.get("missing"):
             entry["path"] = None
             entry["sha256"] = None

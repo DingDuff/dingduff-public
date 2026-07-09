@@ -59,12 +59,14 @@ PAGE_MARKER_RE = re.compile(r"<<pg\. (\d+)>>")
 DEFAULT_TEMPLATE = Path(__file__).resolve().parent.parent / "viewer" / "review_viewer.html"
 
 # Which vendored libraries each embeddable media type needs at view time.
+# Only these media types have a native viewer; a text/plain original is
+# provenance metadata in cites.json but embedding its bytes would be dead
+# weight the panel never reads (transcript mode renders the extracted text).
 MEDIA_VENDOR_FILES = {
     "application/pdf": ("pdfjs/pdf.min.mjs", "pdfjs/pdf.worker.min.mjs",
                         "pdfjs/text_layer.css"),
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
         ("jszip/jszip.min.js", "docx-preview/docx-preview.min.js"),
-    "text/plain": (),
 }
 
 # DOM ids the viewer boots vendor code from (base64 in inert text/plain tags).
@@ -150,31 +152,36 @@ def load_review(path: Path) -> Optional[Dict[str, Any]]:
     return review
 
 
-def anchor_pages_for(raw: str, spans: List[Tuple[int, int, str]]) -> Optional[Dict[str, int]]:
+def anchor_pages_for(raw: str, spans: List[Tuple[int, int, str]]
+                     ) -> Tuple[Optional[Dict[str, int]], Optional[int]]:
     """Map each anchor mark to the page whose `<<pg. N>>` marker most recently
     precedes its start offset. Computed here in Python because the offsets are
     Python codepoint indices — the viewer's JS must never do arithmetic on
-    them. Returns None when the text carries no markers."""
+    them. Returns (pages, first_page); first_page is the FIRST marker's
+    printed number — mark_pdf_pages numbers pages contiguously from it, so
+    the viewer maps a printed page N to PDF page ordinal N - first_page + 1
+    (--first-page exhibits print 461-470 across physical pages 1-10).
+    Returns (None, None) when the text carries no markers."""
     markers = [(m.start(), int(m.group(1))) for m in PAGE_MARKER_RE.finditer(raw)]
     if not markers:
-        return None
+        return None, None
     positions = [pos for pos, _ in markers]
     pages: Dict[str, int] = {}
     for start, _end, mark in spans:
         idx = bisect_right(positions, start) - 1
         if idx >= 0:
             pages[mark] = markers[idx][1]
-    return pages
+    return pages, markers[0][1]
 
 
-def embed_originals(cites: Dict[str, Any], workdir: Path, force: bool
+def embed_originals(cites: Dict[str, Any], workdir: Path
                     ) -> Tuple[Dict[str, Any], List[Dict[str, str]], List[str]]:
     """Load, verify, and base64 the original binaries recorded in cites.json.
 
-    Returns (originals, skipped, checksum_failures). Missing/oversized files
-    are skipped with a recorded reason (the verified text view is unaffected);
-    checksum failures are returned for the caller's fatal-unless---force
-    policy, and are skipped when forced.
+    Returns (originals, skipped, checksum_failures). Missing, oversized, and
+    non-renderable files are skipped with a recorded reason (the verified
+    text view is unaffected); checksum failures are returned for the CALLER'S
+    fatal-unless---force policy — this function only reports them.
     """
     originals: Dict[str, Any] = {}
     skipped: List[Dict[str, str]] = []
@@ -183,6 +190,9 @@ def embed_originals(cites: Dict[str, Any], workdir: Path, force: bool
     for key, src in cites["sources"].items():
         original = src.get("original")
         if not isinstance(original, dict) or not original.get("path"):
+            continue
+        if original.get("media_type") not in MEDIA_VENDOR_FILES:
+            skipped.append({"key": key, "reason": "not_renderable"})
             continue
         path = workdir / original["path"]
         if not path.is_file():
@@ -266,9 +276,10 @@ def build_payload(cites: Dict[str, Any], workdir: Path, force: bool,
                 "segments": segment_document(raw, spans),
                 "checksum_ok": True,
             }
-            pages = anchor_pages_for(raw, spans)
+            pages, first_page = anchor_pages_for(raw, spans)
             if pages is not None:
                 source_docs[key]["anchor_pages"] = pages
+                source_docs[key]["first_page"] = first_page
         else:
             source_docs[key] = {"segments": [{"text": raw, "marks": []}],
                                 "checksum_ok": False}
@@ -283,7 +294,7 @@ def build_payload(cites: Dict[str, Any], workdir: Path, force: bool,
     # --- original binaries (native rendering; standalone bundle only) ---
     if include_originals:
         originals, originals_skipped, orig_checksum_failures = embed_originals(
-            cites, workdir, force)
+            cites, workdir)
         if orig_checksum_failures and not force:
             listing = "\n  ".join(orig_checksum_failures)
             raise FatalError(
@@ -414,8 +425,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 2
 
     html = template.replace(PAYLOAD_PLACEHOLDER, escape_payload(payload), 1)
-    if VENDOR_PLACEHOLDER in html:
-        html = html.replace(VENDOR_PLACEHOLDER, vendor_block, 1)
+    html = html.replace(VENDOR_PLACEHOLDER, vendor_block, 1)
     if len(html) > HTML_SIZE_WARNING_CHARS:
         print(f"warning: review.html is {len(html):,} chars — large embedded "
               "originals make it slow to open; consider --no-originals",
