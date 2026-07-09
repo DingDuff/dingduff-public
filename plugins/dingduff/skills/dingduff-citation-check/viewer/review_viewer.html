@@ -249,6 +249,7 @@
     border-radius: 999px;
   }
   #reflow-toggle.on { background: var(--accent); border-color: var(--accent); color: var(--on-status-fg); }
+  #reflow-toggle:disabled { opacity: 0.4; cursor: default; }
   /* Small icon-only theme toggle. Sits in the topbar; user click is the
      highest-priority theme signal (sticks for the session even if the MCP
      host later sends a different theme). */
@@ -414,6 +415,98 @@
     padding: 0 5px;
     font-size: 0.85em;
   }
+  /* ---- Native source rendering (standalone bundle only) ---------------
+     The source pane can render the ORIGINAL document (PDF via PDF.js,
+     DOCX via docx-preview) or the extracted text in transcript format.
+     The verified text view is always available via #view-toggle. */
+  #view-toggle {
+    flex: 0 0 auto;
+    padding: 2px 9px;
+    font-size: 0.95em;
+    text-transform: none;
+    letter-spacing: 0;
+    border-radius: 999px;
+  }
+  #view-toggle.on { background: var(--accent); border-color: var(--accent); color: var(--on-status-fg); }
+  /* PDF mode: a column of page cards over the pane background. Text inside
+     the pages is the PDF's own ink — page canvases stay white in dark mode
+     (like paper), so no theme overrides here. */
+  .cc-pdf-doc { white-space: normal; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .cc-pdf-page {
+    position: relative;
+    margin: 0 auto 14px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    overflow: hidden;
+  }
+  .cc-pdf-page canvas { display: block; width: 100%; height: 100%; }
+  .cc-pdf-page .cc-pdf-pageno {
+    position: absolute;
+    top: 4px; right: 6px;
+    font-size: 0.7em;
+    color: #999;
+    user-select: none;
+    pointer-events: none;
+  }
+  /* The text layer's own rules come from PDF.js's stylesheet, vendored
+     verbatim (viewer/vendor/pdfjs/text_layer.css) and injected at PDF boot —
+     the TextLayer sizes spans through its custom-property rules, and ad-hoc
+     substitutes render them at the wrong scale. Here we only stack it over
+     the canvas within the page card. */
+  .cc-pdf-page .textLayer { z-index: 1; }
+  /* Anchor highlight overlays — multiplied over the page image so the PDF's
+     ink shows through. LITERAL light-mode yellows, not var(--hl): the page
+     canvas is always white (paper), so the dark theme's deep-tint tokens
+     would read as redaction bars here. */
+  .cc-pdf-anchor {
+    position: absolute;
+    background: #fff3b0;
+    mix-blend-mode: multiply;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .cc-pdf-anchor.current { background: #ffd66e; }
+  /* Floating "p. N" chip synced to scroll — the pin-cite affordance. */
+  #pdf-page-chip {
+    position: sticky;
+    top: 8px;
+    float: right;
+    margin: 0 4px 0 0;
+    z-index: 3;
+  }
+  .cc-pdf-notice { white-space: normal; }
+  /* DOCX mode: docx-preview injects its own page styling into the container;
+     we only bound it. Its pages are white like PDF pages. */
+  .cc-docx-doc { white-space: normal; }
+  .cc-docx-doc .docx-wrapper { background: transparent; padding: 0; }
+  .cc-docx-doc .docx-wrapper > section.docx { margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
+  /* Literal yellows for the same reason as .cc-pdf-anchor: docx-preview
+     pages are white in both themes. */
+  ::highlight(cc-anchor-native) { background-color: #fff3b0; }
+  ::highlight(cc-anchor-native-current) { background-color: #ffd66e; }
+  /* Transcript mode: the verified extracted text, monospace with an
+     offset-safe line-number gutter. Gutter digits come from CSS content
+     (attr(data-line)) on zero-text spans — the same trick as .cc-pagebreak —
+     so DOM text content, anchor offsets, and find-in-source are unaffected. */
+  .cc-transcript {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    line-height: 1.5;
+    white-space: pre;
+    overflow-x: auto;
+  }
+  .cc-lineno {
+    display: inline-block;
+    width: 4ch;
+    margin-right: 1.5ch;
+    text-align: right;
+    color: var(--muted);
+    opacity: 0.6;
+    user-select: none;
+  }
+  .cc-lineno::before { content: attr(data-line); }
+
   /* Printable audit log (standalone mode): when body.print-audit is set,
      printing shows ONLY the generated audit table, letter landscape.
      Table styles mirror scripts/build_audit.py — keep them in lockstep. */
@@ -489,6 +582,7 @@
     </div>
     <div class="pane-head" id="source-head">
       <span class="pane-label" id="source-label">Source</span>
+      <button id="view-toggle" hidden title="Switch between the original document (native format) and the verified plain-text view. Verification always ran against the text; the original is shown for readability and page checking."></button>
       <button id="reflow-toggle" title="Collapse hard-wrapped line breaks in the source text for easier reading. Highlights and exact wording are unchanged; toggle off to see the file's original line breaks.">↵ Reflow</button>
     </div>
     <div id="source-body" class="doc"></div>
@@ -510,6 +604,7 @@
 
 <div id="print-audit" hidden></div>
 
+<!--__CITECHECK_VENDOR__-->
 <script id="citecheck-payload" type="application/json">/*__CITECHECK_PAYLOAD__*/</script>
 <script>
 (function () {
@@ -547,9 +642,18 @@
       binds: p.binds || {},
       build: p.build || { forced: false, mismatches: [] },
       priorReview: p.prior_review || null,
+      originals: p.originals || {},
+      originalsSkipped: p.originals_skipped || [],
       getSourceDoc: function (key) {
-        return Promise.resolve(p.source_docs[key] ||
-          { segments: null, checksum_ok: null, missing: true });
+        var doc = p.source_docs[key] ||
+          { segments: null, checksum_ok: null, missing: true };
+        if (doc.segments && !doc._pageSplit) {
+          // Python pre-segments but leaves `<<pg. N>>` marker text inline;
+          // split once here so page pills render in standalone mode too.
+          doc.segments = splitSegmentsAtPageMarkers(doc.segments);
+          doc._pageSplit = true;
+        }
+        return Promise.resolve(doc);
       },
       sendReview: null  // standalone: download/clipboard only
     };
@@ -716,6 +820,116 @@
     if (current) { renderSource(byId[current].source, current); }
   }
 
+  // ---- render modes -------------------------------------------------
+  // A source renders as verified text (status quo), or natively when the
+  // standalone bundle embeds its original binary (PDF/DOCX) or the source
+  // is hinted as a transcript. The text view is ALWAYS available via the
+  // toggle and is the automatic fallback: native rendering is a viewing
+  // upgrade, never a verification path — verdicts and anchors are still
+  // grounded in the verified extracted text.
+  var viewModes = (function () {
+    try { return JSON.parse(localStorage.getItem("citecheck:viewmodes")) || {}; }
+    catch (e) { return {}; }
+  })();
+  var nativeDisabled = {};   // key -> runtime fallback reason (scanned PDF, boot failure)
+
+  function persistViewModes() {
+    try { localStorage.setItem("citecheck:viewmodes", JSON.stringify(viewModes)); }
+    catch (e) { /* storage unavailable — session-only preference */ }
+  }
+
+  var DOCX_MEDIA_TYPE =
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+  function nativeCapability(key) {
+    var orig = (src.originals || {})[key];
+    if (orig && orig.media_type === "application/pdf" && orig.data_b64) { return "pdf"; }
+    if (orig && orig.media_type === DOCX_MEDIA_TYPE && orig.data_b64) { return "docx"; }
+    // Transcript mode restyles the verified text itself, so it needs no
+    // original bytes and works in MCP mode too.
+    var meta = src.cites.sources[key] || {};
+    if (meta.render_hint === "transcript") { return "transcript"; }
+    return null;
+  }
+
+  function currentMode(key) {
+    var cap = nativeCapability(key);
+    if (!cap || nativeDisabled[key]) { return "text"; }
+    return viewModes[key] === "text" ? "text" : "native";
+  }
+
+  function updateSourceControls(key, cap, mode) {
+    var vt = $("view-toggle");
+    if (!cap || nativeDisabled[key]) {
+      vt.hidden = true;
+    } else {
+      vt.hidden = false;
+      var label = cap === "transcript" ? "Transcript" : "Original";
+      vt.textContent = label + ": " + (mode === "native" ? "on" : "off");
+      vt.classList.toggle("on", mode === "native");
+    }
+    // Reflow rewrites displayed whitespace — text-view-only by design.
+    $("reflow-toggle").disabled = mode === "native";
+  }
+
+  function toggleViewMode() {
+    if (!current) { return; }
+    var key = byId[current].source;
+    if (!nativeCapability(key)) { return; }
+    viewModes[key] = currentMode(key) === "native" ? "text" : "native";
+    persistViewModes();
+    renderSource(key, current);
+  }
+
+  // Reasons an original wasn't embedded, in reviewer-facing language.
+  var SKIP_REASONS = {
+    too_large: "the original file is too large to embed in this bundle",
+    missing: "the original file was not found when this bundle was built",
+    checksum_mismatch: "the original file changed after verification",
+    disabled: "this bundle was built with --no-originals"
+  };
+
+  function skipReasonFor(key) {
+    var skipped = (src.originalsSkipped || []).filter(function (s) {
+      return s.key === key;
+    })[0];
+    return skipped ? (SKIP_REASONS[skipped.reason] || skipped.reason) : null;
+  }
+
+  // Shared per-source anchor list: one entry per verified anchor segment.
+  function sourceAnchorList(key) {
+    var list = [];
+    citations.forEach(function (c) {
+      if (c.source !== key) { return; }
+      (c.anchors || []).forEach(function (a, i) {
+        list.push({ mark: c.id + ":" + i, cid: c.id, quote: a.quote });
+      });
+    });
+    return list;
+  }
+
+  // "pin: 462 · paraphrase · anchor on p. 461" — the anchor-page hint is the
+  // first machine-assisted pin check: the attorney compares the claimed pin
+  // to where the verified passage actually sits.
+  function updateCardMeta(cid, anchorPages) {
+    var c = byId[cid];
+    if (!c) { return; }
+    var parts = [];
+    if (c.pin) { parts.push("pin: " + c.pin); }
+    parts.push(c.support_type);
+    if (anchorPages) {
+      var pg = anchorPages[cid + ":0"];
+      if (pg != null) { parts.push("anchor on p. " + pg); }
+    }
+    $("card-meta").textContent = parts.join(" · ");
+  }
+
+  var sourceScrollCleanup = null;   // detach the PDF page-chip scroll listener
+  var renderGen = 0;   // generation guard: native builds resolve async, and a
+                       // stale done() must never append into a newer render
+                       // (two overlapping builds would stack containers and
+                       // scroll to the wrong one)
+
   function renderSource(key, focusCid) {
     var body = $("source-body");
     var meta = src.cites.sources[key] || {};
@@ -724,19 +938,47 @@
       : (meta.case_name || meta.citation || key);
     $("source-label").textContent = "Source — " + label +
       (meta.path ? " (" + meta.path + ")" : "");
+    if (sourceScrollCleanup) { sourceScrollCleanup(); sourceScrollCleanup = null; }
+    if (HAS_HIGHLIGHT_API) {
+      CSS.highlights.delete("cc-anchor-native");
+      CSS.highlights.delete("cc-anchor-native-current");
+    }
     body.replaceChildren();
     anchorEls = {};
 
+    var cap = nativeCapability(key);
+    var mode = currentMode(key);
+    updateSourceControls(key, cap, mode);
+    var cacheKey = key + "|" + (mode === "native" ? cap : "text");
+    var gen = ++renderGen;
+
     var done = function (entry) {
+      if (gen !== renderGen) { return; }   // superseded by a later render
       anchorEls = entry.anchors;
       body.appendChild(entry.el);
-      emphasizeAnchors(focusCid);
+      if (entry.attach) { entry.attach(); }        // post-insertion wiring (PDF chip)
+      (entry.emphasize || emphasizeAnchors)(focusCid);
+      updateCardMeta(focusCid, entry.anchorPages);
       refreshSourceSearch();   // re-find the query in the now-current source
       highlightPageHints();    // paint "page"/"pg" word occurrences
     };
 
-    if (sourceCache[key]) { done(sourceCache[key]); return; }
+    if (sourceCache[cacheKey]) { done(sourceCache[cacheKey]); return; }
 
+    if (mode === "native" && cap === "pdf") {
+      renderNativePdf(key, focusCid, cacheKey, done);
+      return;
+    }
+    if (mode === "native" && cap === "docx") {
+      renderNativeDocx(key, focusCid, cacheKey, done);
+      return;
+    }
+    renderDocSource(key, cacheKey, mode === "native" && cap === "transcript", done);
+  }
+
+  // Text and transcript modes — both render the verified extracted text
+  // (transcript adds a monospace layout and an offset-safe line gutter).
+  function renderDocSource(key, cacheKey, asTranscript, done) {
     src.getSourceDoc(key).then(function (doc) {
       var container = document.createElement("div");
       var anchors = {};
@@ -765,6 +1007,13 @@
             "this source. Verification was performed against your stored file.";
           container.appendChild(r);
         }
+        var whyNoNative = nativeDisabled[key] || skipReasonFor(key);
+        if (whyNoNative && !asTranscript) {
+          var d = document.createElement("div");
+          d.className = "notice";
+          d.textContent = "Showing the verified text view — " + whyNoNative + ".";
+          container.appendChild(d);
+        }
         (doc.unlocated || []).forEach(function (u) {
           var x = document.createElement("div");
           x.className = "notice warn";
@@ -777,35 +1026,15 @@
           x.appendChild(q);
           container.appendChild(x);
         });
-        doc.segments.forEach(function (seg) {
-          // reflow is display-only and offset-safe: anchor (mark) boundaries
-          // sit on non-whitespace quote characters, so a hard-wrap whitespace
-          // run never straddles two segments — collapsing within each segment
-          // can't move a highlight relative to its words.
-          if (seg.pageBreak) {
-            var pb = document.createElement("span");
-            pb.className = "cc-pagebreak";
-            pb.setAttribute("data-page", String(seg.page));
-            pb.setAttribute("aria-label", "page " + seg.page);
-            container.appendChild(pb);
-            return;
-          }
-          var text = reflowText(seg.text);
-          if (!seg.marks || !seg.marks.length) {
-            container.appendChild(document.createTextNode(text));
-            return;
-          }
-          var m = document.createElement("mark");
-          m.textContent = text;
-          m.dataset.marks = seg.marks.join(" ");
-          seg.marks.forEach(function (mk) {
-            (anchors[mk] = anchors[mk] || []).push(m);
-          });
-          container.appendChild(m);
-        });
+        if (asTranscript) {
+          container.appendChild(buildTranscriptBody(doc.segments, anchors));
+        } else {
+          appendTextSegments(container, doc.segments, anchors);
+        }
       }
-      sourceCache[key] = { el: container, anchors: anchors };
-      done(sourceCache[key]);
+      sourceCache[cacheKey] = { el: container, anchors: anchors,
+                                anchorPages: doc && doc.anchor_pages };
+      done(sourceCache[cacheKey]);
     }, function (err) {
       var container = document.createElement("div");
       var n = document.createElement("div");
@@ -814,6 +1043,85 @@
       container.appendChild(n);
       done({ el: container, anchors: {} });
     });
+  }
+
+  function appendTextSegments(container, segments, anchors) {
+    segments.forEach(function (seg) {
+      // reflow is display-only and offset-safe: anchor (mark) boundaries
+      // sit on non-whitespace quote characters, so a hard-wrap whitespace
+      // run never straddles two segments — collapsing within each segment
+      // can't move a highlight relative to its words.
+      if (seg.pageBreak) {
+        var pb = document.createElement("span");
+        pb.className = "cc-pagebreak";
+        pb.setAttribute("data-page", String(seg.page));
+        pb.setAttribute("aria-label", "page " + seg.page);
+        container.appendChild(pb);
+        return;
+      }
+      var text = reflowText(seg.text);
+      if (!seg.marks || !seg.marks.length) {
+        container.appendChild(document.createTextNode(text));
+        return;
+      }
+      var m = document.createElement("mark");
+      m.textContent = text;
+      m.dataset.marks = seg.marks.join(" ");
+      seg.marks.forEach(function (mk) {
+        (anchors[mk] = anchors[mk] || []).push(m);
+      });
+      container.appendChild(m);
+    });
+  }
+
+  // Transcript layout: white-space:pre monospace with a line-number gutter.
+  // Gutter spans carry ZERO text content (digits come from CSS attr()), and
+  // reflow is never applied, so the DOM text still concatenates to the raw
+  // verified file — anchors and find-in-source are unaffected. Line numbers
+  // restart at each page pill, matching deposition page:line pin cites.
+  function buildTranscriptBody(segments, anchors) {
+    var container = document.createElement("div");
+    container.className = "cc-transcript";
+    var line = 1;
+    function gutter() {
+      var s = document.createElement("span");
+      s.className = "cc-lineno";
+      s.setAttribute("data-line", String(line));
+      line += 1;
+      return s;
+    }
+    container.appendChild(gutter());
+    segments.forEach(function (seg) {
+      if (seg.pageBreak) {
+        var pb = document.createElement("span");
+        pb.className = "cc-pagebreak";
+        pb.setAttribute("data-page", String(seg.page));
+        pb.setAttribute("aria-label", "page " + seg.page);
+        container.appendChild(pb);
+        line = 1;
+        return;
+      }
+      var parts = String(seg.text).split("\n");
+      parts.forEach(function (piece, j) {
+        if (j > 0) {
+          container.appendChild(document.createTextNode("\n"));
+          container.appendChild(gutter());
+        }
+        if (!piece) { return; }
+        if (!seg.marks || !seg.marks.length) {
+          container.appendChild(document.createTextNode(piece));
+          return;
+        }
+        var m = document.createElement("mark");
+        m.textContent = piece;
+        m.dataset.marks = seg.marks.join(" ");
+        seg.marks.forEach(function (mk) {
+          (anchors[mk] = anchors[mk] || []).push(m);
+        });
+        container.appendChild(m);
+      });
+    });
+    return container;
   }
 
   // Scroll an element to the vertical center of its scrollable pane WITHOUT
@@ -972,7 +1280,9 @@
     Object.keys(anchorEls).forEach(function (mk) {
       var isCurrent = mk.indexOf(cid + ":") === 0;
       anchorEls[mk].forEach(function (el) {
-        el.className = isCurrent ? "current" : "";
+        // classList (not className assignment) so elements with a base class
+        // — PDF overlay divs, docx scroll targets — keep it.
+        el.classList.toggle("current", isCurrent);
         if (isCurrent && !firstMark) { firstMark = el; }
       });
     });
@@ -1498,6 +1808,7 @@
     $("export-btn").addEventListener("click", exportReview);
     $("audit-btn").addEventListener("click", printOrDownloadAudit);
     $("reflow-toggle").addEventListener("click", toggleReflow);
+    $("view-toggle").addEventListener("click", toggleViewMode);
     var themeBtn = $("theme-toggle");
     if (themeBtn) {
       themeBtn.addEventListener("click", toggleTheme);
@@ -1741,6 +2052,40 @@
     return positions;
   }
 
+  // Split each segment around any PAGE_MARKER_RE tokens it contains,
+  // dropping the marker text and inserting a pageBreak pseudo-segment that
+  // the render loop turns into a visible pill. The page number rides on the
+  // marker itself, so no per-source citation parsing is needed here — and
+  // parallel-reporter ambiguity is resolved once on the server, not
+  // re-derived per render. Shared by the MCP re-anchor path and the
+  // standalone payload path (Python pre-segments; markers ride inside
+  // segment text until this split).
+  function splitSegmentsAtPageMarkers(segments) {
+    var out = [];
+    segments.forEach(function (seg) {
+      if (seg.pageBreak) { out.push(seg); return; }
+      if (typeof seg.text !== "string" || seg.text.indexOf("<<pg.") === -1) {
+        out.push(seg);
+        return;
+      }
+      PAGE_MARKER_RE.lastIndex = 0;
+      var text = seg.text;
+      var cursor = 0;
+      var m;
+      while ((m = PAGE_MARKER_RE.exec(text)) !== null) {
+        if (m.index > cursor) {
+          out.push({ text: text.slice(cursor, m.index), marks: seg.marks });
+        }
+        out.push({ pageBreak: true, page: parseInt(m[1], 10) });
+        cursor = m.index + m[0].length;
+      }
+      if (cursor < text.length) {
+        out.push({ text: text.slice(cursor), marks: seg.marks });
+      }
+    });
+    return out;
+  }
+
   // Interval flattening — mirror of build_review.segment_document.
   function segmentDocument(raw, spans) {
     var clipped = spans
@@ -1803,6 +2148,661 @@
       }
     });
     return spans;
+  }
+
+  // ==================================================================
+  // Native source rendering (standalone bundle only)
+  // ==================================================================
+  //
+  // build_review.py embeds original PDF/DOCX bytes and the vendored viewer
+  // libraries (PDF.js, docx-preview + JSZip) as base64 in inert
+  // `<script type="text/plain">` tags; they are booted here via Blob URLs
+  // — no network fetches, works over file://. The MCP iframe never receives
+  // these tags, so none of this code runs there.
+  //
+  // Anchoring reuses the EXACT verifier-locked machinery (normalizeWithMap
+  // + findQuoteSpan) against the native render's own text: per page for the
+  // PDF.js text layer, over the produced DOM for docx-preview. The verified
+  // extracted text remains the source of truth; a quote that can't be
+  // re-located natively gets a notice, never a silent miss.
+
+  function b64ToBytes(b64) {
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) { bytes[i] = bin.charCodeAt(i); }
+    return bytes;
+  }
+
+  function vendorBlobUrl(id) {
+    var el = document.getElementById(id);
+    if (!el) { return null; }
+    var bytes = b64ToBytes(el.textContent.replace(/\s+/g, ""));
+    return URL.createObjectURL(new Blob([bytes], { type: "text/javascript" }));
+  }
+
+  // ---- PDF (PDF.js) ----
+  var pdfLibPromise = null;   // Promise<pdfjs module>
+  var pdfOpenCache = {};      // source key -> Promise<{pdf, labels}>
+
+  function bootPdfJs() {
+    if (pdfLibPromise) { return pdfLibPromise; }
+    pdfLibPromise = new Promise(function (resolve, reject) {
+      var mainUrl = vendorBlobUrl("cc-vendor-pdfjs");
+      if (!mainUrl) {
+        reject(new Error("the PDF viewer library is not embedded in this bundle"));
+        return;
+      }
+      // Dynamic import via Function so this file never contains `import(`
+      // at the top level — engines old enough to choke on the syntax would
+      // otherwise refuse the whole script (including the MCP path, which
+      // never runs this code).
+      var dynImport;
+      try { dynImport = new Function("u", "return import(u)"); }
+      catch (e) { reject(new Error("this browser cannot load ES modules")); return; }
+      dynImport(mainUrl).then(function (lib) {
+        var workerUrl = vendorBlobUrl("cc-vendor-pdfjs-worker");
+        if (workerUrl && lib.GlobalWorkerOptions) {
+          lib.GlobalWorkerOptions.workerSrc = workerUrl;
+        }
+        // PDF.js's own text-layer stylesheet (vendored verbatim): the
+        // TextLayer positions and sizes spans through its custom-property
+        // rules (--total-scale-factor, --font-height, --scale-x); without
+        // them spans render at the wrong scale and highlights drift off
+        // the glyphs.
+        var cssEl = document.getElementById("cc-vendor-pdfjs-css");
+        if (cssEl && !document.getElementById("cc-pdfjs-css-live")) {
+          var style = document.createElement("style");
+          style.id = "cc-pdfjs-css-live";
+          style.textContent = atob(cssEl.textContent.replace(/\s+/g, ""));
+          document.head.appendChild(style);
+        }
+        resolve(lib);
+      }, reject);
+    });
+    return pdfLibPromise;
+  }
+
+  function openPdf(key) {
+    if (!pdfOpenCache[key]) {
+      pdfOpenCache[key] = bootPdfJs().then(function (lib) {
+        var orig = src.originals[key];
+        return lib.getDocument({
+          data: b64ToBytes(orig.data_b64),
+          // PDF-borne JS must never evaluate (CVE-2024-4367 class);
+          // everything is local, so no fetching either.
+          isEvalSupported: false,
+          disableAutoFetch: true,
+          useWorkerFetch: false
+        }).promise.then(function (pdf) {
+          return pdf.getPageLabels().then(
+            function (labels) { return { lib: lib, pdf: pdf, labels: labels }; },
+            function () { return { lib: lib, pdf: pdf, labels: null }; });
+        });
+      });
+    }
+    return pdfOpenCache[key];
+  }
+
+  // A PDF with no text layer (scanned/image-only) can't anchor quotes —
+  // sample the first pages and fall back to the text view early.
+  function looksScanned(pdf) {
+    var sample = Math.min(3, pdf.numPages);
+    var checks = [];
+    for (var n = 1; n <= sample; n++) {
+      checks.push(pdf.getPage(n).then(function (page) {
+        return page.getTextContent().then(function (tc) {
+          return tc.items.reduce(function (len, it) {
+            return len + (it.str ? it.str.length : 0);
+          }, 0);
+        });
+      }));
+    }
+    return Promise.all(checks).then(function (lengths) {
+      return lengths.reduce(function (a, b) { return a + b; }, 0) < 20;
+    });
+  }
+
+  function renderNativePdf(key, focusCid, cacheKey, done) {
+    openPdf(key).then(function (info) {
+      return looksScanned(info.pdf).then(function (scanned) {
+        if (scanned) {
+          var e = new Error("scanned");
+          e.scanned = true;
+          throw e;
+        }
+        return buildPdfEntry(key, info);
+      });
+    }).then(function (entry) {
+      sourceCache[cacheKey] = entry;
+      done(entry);
+    }).catch(function (err) {
+      nativeDisabled[key] = err && err.scanned
+        ? "this PDF appears to be scanned (no text layer), so the verified " +
+          "passages cannot be highlighted on the page images"
+        : "the original PDF could not be rendered (" +
+          ((err && err.message) || err) + ")";
+      renderSource(key, focusCid);
+    });
+  }
+
+  function buildPdfEntry(key, info) {
+    var lib = info.lib, pdf = info.pdf, labels = info.labels;
+    var pane = $("source-body");
+    var pageWidth = Math.max(320, pane.clientWidth - 48);
+    var anchors = {};                        // mark -> [overlay divs]
+    var anchorList = sourceAnchorList(key);
+    var located = {};                        // mark -> true once placed
+    var pendingFocus = null;                 // cid to re-emphasize when placed
+    var container = document.createElement("div");
+    container.className = "cc-pdf-doc";
+
+    var chip = document.createElement("span");
+    chip.id = "pdf-page-chip";
+    chip.className = "cc-pagebreak";
+    chip.setAttribute("data-page", "1");
+    container.appendChild(chip);
+
+    var noticeBox = document.createElement("div");
+    noticeBox.className = "cc-pdf-notice";
+    container.appendChild(noticeBox);
+
+    var entry = { el: container, anchors: anchors, emphasize: emphasize };
+
+    // anchor_pages (computed in Python over the marked extracted text) says
+    // which page each verified anchor lives on — the direct jump target.
+    var anchorPages = {};
+    var docPromise = src.getSourceDoc(key).then(function (doc) {
+      anchorPages = (doc && doc.anchor_pages) || {};
+      entry.anchorPages = anchorPages;
+    }, function () { /* text doc unavailable — fall back to page-1 jumps */ });
+
+    var wrappers = [];
+    var pageState = [];   // 0 = placeholder, 1 = rendering, 2 = rendered
+    var defaultAspect = 11 / 8.5;
+
+    function pageLabel(n) {
+      return (labels && labels[n - 1]) ? labels[n - 1] : String(n);
+    }
+
+    function updateChip() {
+      // Client-rect comparison, not offsetTop: wrappers' offsetParent is the
+      // page body (no positioned ancestor), so offsetTop lives in a different
+      // coordinate space than the pane's scrollTop. The pane's vertical
+      // center picks the page the reviewer is actually reading.
+      var pr = pane.getBoundingClientRect();
+      var threshold = pr.top + pr.height / 2;
+      var pageN = 1;
+      for (var i = 0; i < wrappers.length; i++) {
+        if (wrappers[i].getBoundingClientRect().top <= threshold) { pageN = i + 1; }
+        else { break; }
+      }
+      chip.setAttribute("data-page", pageLabel(pageN));
+    }
+
+    function makeWrapper(n) {
+      var w = document.createElement("div");
+      w.className = "cc-pdf-page";
+      w.style.width = pageWidth + "px";
+      w.style.height = Math.round(pageWidth * defaultAspect) + "px";
+      w.dataset.page = String(n);
+      var no = document.createElement("span");
+      no.className = "cc-pdf-pageno";
+      no.textContent = pageLabel(n);
+      w.appendChild(no);
+      return w;
+    }
+
+    // Join text items into one page string, inserting "\n" at item EOLs so
+    // words on adjacent lines don't concatenate. The injected newline maps
+    // to the END of its item's span (it exists in the match string only).
+    function pageTextIndex(items) {
+      var text = "", startsAt = [];
+      items.forEach(function (it) {
+        startsAt.push(text.length);
+        text += it.str || "";
+        if (it.hasEOL) { text += "\n"; }
+      });
+      return { text: text, startsAt: startsAt };
+    }
+
+    function locateInItems(ix, items, flatPos, isEnd) {
+      // Map a char position in the joined page string to (item index, offset).
+      var lo = 0, hi = ix.startsAt.length - 1, idx = 0;
+      while (lo <= hi) {
+        var mid = (lo + hi) >> 1;
+        if (ix.startsAt[mid] <= flatPos) { idx = mid; lo = mid + 1; }
+        else { hi = mid - 1; }
+      }
+      var off = flatPos - ix.startsAt[idx];
+      var strLen = (items[idx].str || "").length;
+      if (off > strLen) { off = strLen; }           // landed on an injected \n
+      if (isEnd && off === 0 && idx > 0) {          // end at item start: use prior end
+        idx -= 1;
+        off = (items[idx].str || "").length;
+      }
+      return { idx: idx, off: off };
+    }
+
+    // Pair text items with their rendered text-layer spans BY TEXT, never by
+    // index: the text layer only creates spans for items that carry text —
+    // empty end-of-line items (Chrome-printed PDFs emit one per line) get no
+    // span, so items[i] and textDivs[i] silently drift apart. Sequential
+    // text-matching (with a one-ahead skip for defensive tolerance) pins
+    // each item to its own span.
+    function mapItemsToSpans(items, container) {
+      var domSpans = container.querySelectorAll("span");
+      var byItem = new Array(items.length);
+      var di = 0;
+      for (var ii = 0; ii < items.length && di < domSpans.length; ii++) {
+        var s = items[ii].str || "";
+        if (!s) { continue; }
+        if (domSpans[di].textContent === s) {
+          byItem[ii] = domSpans[di];
+          di += 1;
+        } else if (domSpans[di + 1] && domSpans[di + 1].textContent === s) {
+          di += 1;                       // unexpected extra span; skip it
+          byItem[ii] = domSpans[di];
+          di += 1;
+        }
+      }
+      return byItem;
+    }
+
+    // Highlight rects from the text-layer spans' ELEMENT boxes, slicing
+    // boundary items by character fraction — NOT from DOM Range rects.
+    // PDF.js scale-corrects each span only end-to-end (one scaleX for the
+    // whole item), so sub-range rects measured with the browser's fallback
+    // font drift mid-item — with per-line items (e.g. Chrome-printed PDFs)
+    // the drift reaches whole words. Element boxes are exact at item
+    // boundaries; the linear slice within a boundary item stays bounded
+    // inside that item's box, so a highlight can never wander off its line.
+    function anchorRects(items, divs, s, e) {
+      var rects = [];
+      for (var i = s.idx; i <= e.idx; i++) {
+        var div = divs[i];
+        var len = (items[i].str || "").length;
+        if (!div || !len) { continue; }
+        var box = div.getBoundingClientRect();
+        if (box.width < 1 || box.height < 1) { continue; }
+        var f0 = i === s.idx ? s.off / len : 0;
+        var f1 = i === e.idx ? e.off / len : 1;
+        if (f1 <= f0) { continue; }
+        rects.push({ left: box.left + box.width * f0,
+                     right: box.left + box.width * f1,
+                     top: box.top, bottom: box.bottom });
+      }
+      return rects;
+    }
+
+    function placeAnchorsOnPage(n, items, divs, wrapper) {
+      var todo = anchorList.filter(function (a) { return !located[a.mark]; });
+      if (!todo.length) { return; }
+      var ix = pageTextIndex(items);
+      if (!ix.text) { return; }
+      var normDoc = normalizeWithMap(ix.text);
+      var wrapRect = wrapper.getBoundingClientRect();
+      todo.forEach(function (a) {
+        var span = findQuoteSpan(ix.text, normDoc, a.quote);
+        if (!span) { return; }
+        var s = locateInItems(ix, items, span.start, false);
+        var e = locateInItems(ix, items, span.end, true);
+        var rects = anchorRects(items, divs, s, e);
+        // Merge per-item rects into one overlay per rendered line — fewer
+        // nodes and no multiply-darkened seams where adjacent rects overlap.
+        var lines = [];
+        for (var ri = 0; ri < rects.length; ri++) {
+          var r = rects[ri];
+          var merged = null;
+          for (var li = 0; li < lines.length; li++) {
+            if (Math.abs(lines[li].top - r.top) < 3) { merged = lines[li]; break; }
+          }
+          if (merged) {
+            merged.left = Math.min(merged.left, r.left);
+            merged.right = Math.max(merged.right, r.right);
+            merged.bottom = Math.max(merged.bottom, r.bottom);
+          } else {
+            lines.push({ top: r.top, left: r.left, right: r.right, bottom: r.bottom });
+          }
+        }
+        var els = [];
+        lines.forEach(function (ln) {
+          var ov = document.createElement("div");
+          ov.className = "cc-pdf-anchor";
+          ov.style.left = (ln.left - wrapRect.left) + "px";
+          ov.style.top = (ln.top - wrapRect.top) + "px";
+          ov.style.width = (ln.right - ln.left) + "px";
+          ov.style.height = (ln.bottom - ln.top) + "px";
+          ov.dataset.marks = a.mark;
+          wrapper.appendChild(ov);
+          els.push(ov);
+        });
+        if (els.length) {
+          located[a.mark] = true;
+          anchors[a.mark] = els;
+        }
+      });
+      updateAnchorCounter();
+      if (pendingFocus) {
+        var cid = pendingFocus;
+        var hasNow = anchorList.some(function (a) {
+          return a.cid === cid && anchors[a.mark];
+        });
+        if (hasNow) { pendingFocus = null; emphasize(cid); }
+      }
+    }
+
+    function renderPage(n) {
+      if (pageState[n - 1]) { return Promise.resolve(); }
+      pageState[n - 1] = 1;
+      var wrapper = wrappers[n - 1];
+      return pdf.getPage(n).then(function (page) {
+        var vp1 = page.getViewport({ scale: 1 });
+        var scale = pageWidth / vp1.width;
+        var vp = page.getViewport({ scale: scale });
+        wrapper.style.height = Math.round(vp.height) + "px";
+        // Both names: PDF.js ≤4 reads --scale-factor; 5.x's text-layer CSS
+        // computes from --total-scale-factor (normally set by its viewer).
+        wrapper.style.setProperty("--scale-factor", String(scale));
+        wrapper.style.setProperty("--total-scale-factor", String(scale));
+        wrapper.style.setProperty("--user-unit", "1");
+
+        var canvas = document.createElement("canvas");
+        var outputScale = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(vp.width * outputScale);
+        canvas.height = Math.floor(vp.height * outputScale);
+        wrapper.insertBefore(canvas, wrapper.firstChild);
+        var renderTask = page.render({
+          canvasContext: canvas.getContext("2d"),
+          viewport: vp,
+          transform: outputScale !== 1
+            ? [outputScale, 0, 0, outputScale, 0, 0] : null,
+          // "print" intent: same static output, but the render loop does not
+          // schedule its continuations on requestAnimationFrame — display
+          // intent stalls forever in a hidden/backgrounded tab, leaving
+          // pages blank until the tab gains focus. A review page is a
+          // static artifact; print semantics (what would be printed is
+          // what the attorney cites) are the right ones anyway.
+          intent: "print"
+        });
+
+        var textDiv = document.createElement("div");
+        textDiv.className = "textLayer";
+        wrapper.appendChild(textDiv);
+        // Feed the SAME TextContent object to the text layer that anchor
+        // placement maps against — items and textDivs must be index-aligned,
+        // and a separately-streamed extraction can chunk items differently
+        // (which silently mis-maps quote offsets to the wrong spans).
+        return page.getTextContent().then(function (tc) {
+          var textLayer = new lib.TextLayer({
+            textContentSource: tc,
+            container: textDiv,
+            viewport: vp
+          });
+          return Promise.all([renderTask.promise, textLayer.render()])
+            .then(function () {
+              pageState[n - 1] = 2;
+              placeAnchorsOnPage(n, tc.items, mapItemsToSpans(tc.items, textDiv), wrapper);
+            });
+        });
+      }).catch(function (err) {
+        pageState[n - 1] = 0;
+        // Log rather than swallow: a page that fails to render/anchor is a
+        // reviewer-facing defect, and silent retries hide the cause.
+        try { console.error("cite-check: PDF page " + n + " failed:", err); }
+        catch (e) { /* console unavailable */ }
+      });
+    }
+
+    function emphasize(cid) {
+      // A superseded entry's in-flight page renders may still complete and
+      // re-enter here via pendingFocus — never scroll the pane for a
+      // container that is no longer in the document.
+      if (!container.isConnected) { return; }
+      Object.keys(anchors).forEach(function (mk) {
+        var isCurrent = mk.indexOf(cid + ":") === 0;
+        anchors[mk].forEach(function (el) {
+          el.classList.toggle("current", isCurrent);
+        });
+      });
+      var first = null;
+      anchorList.forEach(function (a) {
+        if (!first && a.cid === cid && anchors[a.mark]) { first = anchors[a.mark][0]; }
+      });
+      if (first) {
+        scrollToInPane(pane, first);
+      } else {
+        var target = null;
+        anchorList.forEach(function (a) {
+          if (target === null && a.cid === cid) {
+            target = anchorPages[a.mark] != null ? anchorPages[a.mark] : 1;
+          }
+        });
+        if (target !== null && wrappers[target - 1]) {
+          pendingFocus = cid;
+          scrollToInPane(pane, wrappers[target - 1]);
+          renderPage(target);
+        } else {
+          pane.scrollTop = 0;
+        }
+      }
+      updateAnchorCounter();
+      updateChip();
+    }
+
+    return docPromise.then(function () {
+      for (var n = 1; n <= pdf.numPages; n++) {
+        var w = makeWrapper(n);
+        wrappers.push(w);
+        pageState.push(0);
+        container.appendChild(w);
+      }
+      // Lazy render: pages draw as they approach the viewport. Anchors for
+      // a page are placed right after its text layer exists.
+      var observer = null;
+      if (typeof IntersectionObserver !== "undefined") {
+        observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) {
+              renderPage(Number(en.target.dataset.page));
+            }
+          });
+        }, { root: pane, rootMargin: "600px 0px" });
+        wrappers.forEach(function (w) { observer.observe(w); });
+      } else {
+        // No IntersectionObserver: render the first few pages eagerly.
+        for (var i = 1; i <= Math.min(5, pdf.numPages); i++) { renderPage(i); }
+      }
+      entry.attach = function () {
+        pane.addEventListener("scroll", updateChip);
+        sourceScrollCleanup = function () {
+          pane.removeEventListener("scroll", updateChip);
+        };
+        updateChip();
+      };
+      return entry;
+    });
+  }
+
+  // ---- DOCX (docx-preview) ----
+  var docxLibPromise = null;
+
+  function bootDocx() {
+    if (docxLibPromise) { return docxLibPromise; }
+    function loadClassic(id) {
+      return new Promise(function (resolve, reject) {
+        var url = vendorBlobUrl(id);
+        if (!url) {
+          reject(new Error("the Word viewer library is not embedded in this bundle"));
+          return;
+        }
+        var s = document.createElement("script");
+        s.src = url;
+        s.onload = resolve;
+        s.onerror = function () { reject(new Error("failed to load " + id)); };
+        document.head.appendChild(s);
+      });
+    }
+    docxLibPromise = loadClassic("cc-vendor-jszip")
+      .then(function () { return loadClassic("cc-vendor-docx-preview"); })
+      .then(function () {
+        if (!window.docx || !window.docx.renderAsync) {
+          throw new Error("docx-preview did not initialize");
+        }
+        return window.docx;
+      });
+    return docxLibPromise;
+  }
+
+  // Flatten a rendered DOM subtree to one string + node index (the same
+  // shape sourceTextIndex builds for the source pane).
+  function domTextIndex(root) {
+    var nodes = [], starts = [], text = "";
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var node;
+    while ((node = walker.nextNode())) {
+      starts.push(text.length);
+      nodes.push(node);
+      text += node.nodeValue;
+    }
+    return { nodes: nodes, starts: starts, text: text };
+  }
+
+  function locateInIndex(ix, flatPos) {
+    var lo = 0, hi = ix.starts.length - 1, ans = 0;
+    while (lo <= hi) {
+      var mid = (lo + hi) >> 1;
+      if (ix.starts[mid] <= flatPos) { ans = mid; lo = mid + 1; } else { hi = mid - 1; }
+    }
+    return { node: ix.nodes[ans], offset: flatPos - ix.starts[ans] };
+  }
+
+  function renderNativeDocx(key, focusCid, cacheKey, done) {
+    bootDocx().then(function (docxLib) {
+      var orig = src.originals[key];
+      var bytes = b64ToBytes(orig.data_b64);
+      var container = document.createElement("div");
+      container.className = "cc-docx-doc";
+      var note = document.createElement("div");
+      note.className = "notice";
+      note.textContent = "Rendered from the original Word file. Page " +
+        "boundaries are approximate (Word repaginates when printing); the " +
+        "text view remains the verified copy.";
+      container.appendChild(note);
+      var inner = document.createElement("div");
+      container.appendChild(inner);
+      return docxLib.renderAsync(bytes.buffer, inner, null, {
+        inWrapper: true,
+        breakPages: true,
+        renderHeaders: true,
+        renderFooters: true,
+        renderFootnotes: true,
+        renderEndnotes: true
+      }).then(function () {
+        var res = anchorInRenderedDom(inner, key);
+        res.unlocated.forEach(function (u) {
+          var x = document.createElement("div");
+          x.className = "notice warn";
+          var head = document.createElement("strong");
+          head.textContent = u.cid + ": verified passage not located in the " +
+            "rendered original — check it in the text view — ";
+          x.appendChild(head);
+          var q = document.createElement("em");
+          q.textContent = "“" + u.quote + "”";
+          x.appendChild(q);
+          container.insertBefore(x, inner);
+        });
+        var entry = {
+          el: container,
+          anchors: res.anchors,
+          emphasize: function (cid) {
+            paintDocxCurrent(res.rangesByCid, cid);
+            emphasizeAnchors(cid);
+          }
+        };
+        sourceCache[cacheKey] = entry;
+        done(entry);
+      });
+    }).catch(function (err) {
+      nativeDisabled[key] = "the original Word file could not be rendered (" +
+        ((err && err.message) || err) + ")";
+      renderSource(key, focusCid);
+    });
+  }
+
+  // Anchor quotes inside docx-preview's DOM. Highlights use the CSS Custom
+  // Highlight API (no DOM mutation of the rendered document); zero-width
+  // marker spans are inserted at range starts purely as scroll targets.
+  function anchorInRenderedDom(root, key) {
+    var anchors = {}, unlocated = [], rangesByCid = {};
+    var ix = domTextIndex(root);
+    var normDoc = normalizeWithMap(ix.text);
+    var found = [];
+    sourceAnchorList(key).forEach(function (a) {
+      var span = findQuoteSpan(ix.text, normDoc, a.quote);
+      if (span) { found.push({ mark: a.mark, cid: a.cid, span: span }); }
+      else { unlocated.push({ cid: a.cid, quote: a.quote }); }
+    });
+    // Insert scroll-target spans back-to-front so earlier flat offsets stay
+    // valid while later text nodes are split.
+    found.slice().sort(function (x, y) { return y.span.start - x.span.start; })
+      .forEach(function (f) {
+        var loc = locateInIndex(ix, f.span.start);
+        if (!loc.node) { return; }
+        var target = document.createElement("span");
+        target.className = "cc-docx-anchor-target";
+        target.dataset.marks = f.mark;
+        try {
+          var after = loc.offset < loc.node.nodeValue.length
+            ? loc.node.splitText(loc.offset)
+            : null;
+          loc.node.parentNode.insertBefore(target, after || loc.node.nextSibling);
+          (anchors[f.mark] = anchors[f.mark] || []).push(target);
+        } catch (e) { /* unexpected DOM shape — scroll target skipped */ }
+      });
+    // Ranges for painting are rebuilt AFTER insertion (splits changed node
+    // boundaries; the flat text itself is unchanged — targets carry no text).
+    if (HAS_HIGHLIGHT_API && found.length) {
+      var ix2 = domTextIndex(root);
+      var all = new Highlight();
+      found.forEach(function (f) {
+        var s = locateInIndex(ix2, f.span.start);
+        var e = locateInIndex(ix2, f.span.end);
+        try {
+          var r = document.createRange();
+          r.setStart(s.node, s.offset);
+          r.setEnd(e.node, e.offset);
+          all.add(r);
+          (rangesByCid[f.cid] = rangesByCid[f.cid] || []).push(r);
+        } catch (ex) { /* skip malformed boundary */ }
+      });
+      CSS.highlights.set("cc-anchor-native", all);
+    }
+    return { anchors: anchors, unlocated: unlocated, rangesByCid: rangesByCid };
+  }
+
+  function paintDocxCurrent(rangesByCid, cid) {
+    if (!HAS_HIGHLIGHT_API) { return; }
+    CSS.highlights.delete("cc-anchor-native-current");
+    var ranges = rangesByCid[cid];
+    if (ranges && ranges.length) {
+      var hl = new Highlight();
+      ranges.forEach(function (r) { hl.add(r); });
+      CSS.highlights.set("cc-anchor-native-current", hl);
+    }
+  }
+
+  // Page number for a JS-space offset into marker-bearing text — the MCP-
+  // mode counterpart of build_review.py's anchor_pages (which is computed
+  // in Python because standalone offsets are Python codepoint indices).
+  function pageForOffset(text, offset) {
+    PAGE_MARKER_RE.lastIndex = 0;
+    var m, page = null;
+    while ((m = PAGE_MARKER_RE.exec(text)) !== null) {
+      if (m.index > offset) { break; }
+      page = parseInt(m[1], 10);
+    }
+    PAGE_MARKER_RE.lastIndex = 0;
+    return page;
   }
 
   // ---------------- host bridge (JSON-RPC over postMessage) ----------------
@@ -2054,46 +3054,27 @@
           }
         });
       });
+      // Offset→page map for the citation card's "anchor on p. N" hint —
+      // all-JS index space here (the spans were just derived from docText),
+      // so there is no Python-codepoint hazard.
+      var anchorPages = null;
+      if (docText.indexOf("<<pg. ") !== -1) {
+        anchorPages = {};
+        spans.forEach(function (s) {
+          var pg = pageForOffset(docText, s.start);
+          if (pg != null) { anchorPages[s.mark] = pg; }
+        });
+      }
       // `reanchored` drives the "re-located in a freshly fetched copy" notice —
       // true for hosted opinions/statutes (the panel fetches a fresh copy that
       // may differ from the verified file), false for inline documents (the
       // delivered text IS the verified working file, so no caveat is needed).
       return { segments: splitSegmentsAtPageMarkers(
                  segmentDocument(docText, spans)),
-               checksum_ok: true, reanchored: !!reanchored, unlocated: unlocated };
+               checksum_ok: true, reanchored: !!reanchored,
+               unlocated: unlocated, anchor_pages: anchorPages || undefined };
     }
 
-    // Split each segment around any PAGE_MARKER_RE tokens it contains,
-    // dropping the marker text and inserting a pageBreak pseudo-segment that
-    // the render loop turns into a visible pill. The page number rides on the
-    // marker itself, so no per-source citation parsing is needed here — and
-    // parallel-reporter ambiguity is resolved once on the server, not
-    // re-derived per render.
-    function splitSegmentsAtPageMarkers(segments) {
-      var out = [];
-      segments.forEach(function (seg) {
-        if (seg.pageBreak) { out.push(seg); return; }
-        if (typeof seg.text !== "string" || seg.text.indexOf("<<pg.") === -1) {
-          out.push(seg);
-          return;
-        }
-        PAGE_MARKER_RE.lastIndex = 0;
-        var text = seg.text;
-        var cursor = 0;
-        var m;
-        while ((m = PAGE_MARKER_RE.exec(text)) !== null) {
-          if (m.index > cursor) {
-            out.push({ text: text.slice(cursor, m.index), marks: seg.marks });
-          }
-          out.push({ pageBreak: true, page: parseInt(m[1], 10) });
-          cursor = m.index + m[0].length;
-        }
-        if (cursor < text.length) {
-          out.push({ text: text.slice(cursor), marks: seg.marks });
-        }
-      });
-      return out;
-    }
     return {
       mode: "mcp",
       cites: cites,
@@ -2173,6 +3154,8 @@
     normalizeWithMap: normalizeWithMap,
     normalizeNeedle: normalizeNeedle,
     segmentDocument: segmentDocument,
+    splitSegmentsAtPageMarkers: splitSegmentsAtPageMarkers,
+    pageForOffset: pageForOffset,
     findQuoteSpan: findQuoteSpan,
     findMemoSpans: findMemoSpans
   };
