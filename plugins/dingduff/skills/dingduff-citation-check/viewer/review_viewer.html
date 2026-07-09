@@ -1625,6 +1625,15 @@
   };
   var ENTITY_RE = /^&(?:#(\d{1,7})|#[xX]([0-9a-fA-F]{1,6})|([a-zA-Z][a-zA-Z0-9]{1,30}));/;
 
+  // Visible page-boundary markers that opinion_store inserts inline
+  // (replacing CL's invisible U+200B markers, which were unspottable) —
+  // LOCKSTEP with PAGE_MARKER_RE in verify_anchors.py. Shared by
+  // normalizeWithMap (zero-width skip) and splitSegmentsAtPageMarkers
+  // (page-pill split); both set lastIndex before each use, so the single
+  // /g instance is safe — and the /g flag is load-bearing (normalizeWithMap's
+  // lastIndex-seeded exec depends on it).
+  var PAGE_MARKER_RE = /<<pg\. (\d+)>>/g;
+
   // Effective character at i: {ch, w} for a decodable reference, else null.
   // hasOwnProperty guards against names like "constructor" hitting the
   // Object prototype.
@@ -2054,15 +2063,12 @@
                checksum_ok: true, reanchored: !!reanchored, unlocated: unlocated };
     }
 
-    // Find inline page markers — the literal token `<<pg. NNN>>` that
-    // opinion_store inserts into stored opinion text at each page boundary
-    // (replacing CL's invisible U+200B markers, which were unspottable). Split
-    // each segment around any markers it contains, dropping the marker text
-    // and inserting a pageBreak pseudo-segment that the render loop turns
-    // into a visible pill. The page number rides on the marker itself, so no
-    // per-source citation parsing is needed here — and parallel-reporter
-    // ambiguity is resolved once on the server, not re-derived per render.
-    var PAGE_MARKER_RE = /<<pg\. (\d+)>>/g;
+    // Split each segment around any PAGE_MARKER_RE tokens it contains,
+    // dropping the marker text and inserting a pageBreak pseudo-segment that
+    // the render loop turns into a visible pill. The page number rides on the
+    // marker itself, so no per-source citation parsing is needed here — and
+    // parallel-reporter ambiguity is resolved once on the server, not
+    // re-derived per render.
     function splitSegmentsAtPageMarkers(segments) {
       var out = [];
       segments.forEach(function (seg) {
