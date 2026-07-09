@@ -36,7 +36,21 @@
           "section": { "type": "string" },
           "jurisdiction": { "type": "string" },
           "title": { "type": "string", "description": "Human-readable label for a 'document' source (e.g. 'Defendant's MSJ Brief', 'Restatement (Second) of Torts § 46'). Shown in the review panel's source pane." },
-          "kind": { "enum": ["case", "secondary", "brief", "evidence", "other"], "description": "Sub-classification of a 'document' source, for the attorney's context only." }
+          "kind": { "enum": ["case", "secondary", "brief", "evidence", "other"], "description": "Sub-classification of a 'document' source, for the attorney's context only." },
+          "original": {
+            "type": "object",
+            "description": "Optional (added in cite-check 1.1): the original binary the extracted text came from. Lets the standalone review bundle render the source natively (PDF.js / docx-preview). Verification and highlight integrity always run against the extracted text; this hash guards ONLY the native render, so a stale binary never disables the verified text view.",
+            "required": ["path", "sha256", "media_type"],
+            "properties": {
+              "path": { "type": "string", "description": "Project-root-relative path to the original file (conventionally sources/originals/)." },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "SHA-256 of the original file's raw bytes, computed by the verifier." },
+              "media_type": { "enum": ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "text/plain"] },
+              "bytes": { "type": "integer", "minimum": 0, "description": "File size in bytes, computed by the verifier." },
+              "pages": { "type": "integer", "minimum": 1, "description": "Page count, when the extraction tool knows it (PDF only)." },
+              "extracted_by": { "type": "string", "description": "Free-form provenance of the text extraction, e.g. 'pdftotext -layout (poppler 24.04) + mark_pdf_pages.py'." }
+            }
+          },
+          "render_hint": { "enum": ["transcript"], "description": "Optional (added in cite-check 1.1): display hint for the review panel. 'transcript' renders the extracted text in transcript format (monospace, line-number gutter, page pills) — set it for deposition/hearing transcripts supplied as text." }
         }
       }
     },

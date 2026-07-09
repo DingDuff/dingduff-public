@@ -539,7 +539,15 @@ class FatalError(Exception):
 SOURCE_PASSTHROUGH_KEYS = (
     "type", "path", "cluster_id", "case_name", "citation",
     "code", "section", "statute_id", "jurisdiction", "missing",
-    "title", "kind",
+    "title", "kind", "render_hint",
+)
+
+# sources[key].original media types the pipeline knows how to render natively
+# (standalone bundle only). Keep in lockstep with cites.schema.json.
+ORIGINAL_MEDIA_TYPES = (
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "text/plain",
 )
 
 # "opinion"/"statute" are public hosted authorities the review panel re-fetches
@@ -626,6 +634,14 @@ def run(proposals: Dict[str, Any], workdir: Path, max_gap: int,
     out_sources: Dict[str, Dict[str, Any]] = {}
     for key, src in proposals["sources"].items():
         entry = {k: src[k] for k in SOURCE_PASSTHROUGH_KEYS if k in src}
+        # render_hint is a published enum; an unknown value would emit a
+        # schema-invalid cites.json and silently do nothing in the viewer.
+        if "render_hint" in entry and entry["render_hint"] != "transcript":
+            warnings.append({"id": key, "code": "render_hint_invalid",
+                             "detail": f"unknown render_hint "
+                                       f"{entry['render_hint']!r} dropped "
+                                       "(valid: 'transcript')"})
+            del entry["render_hint"]
         if src.get("missing"):
             entry["path"] = None
             entry["sha256"] = None
@@ -646,6 +662,37 @@ def run(proposals: Dict[str, Any], workdir: Path, max_gap: int,
             docs[key].body_end = len(docs[key].raw)
             docs[key].header_end = 0
         entry["sha256"] = sha256_file(path)
+        # Original-binary provenance (native rendering in the standalone
+        # bundle). The verifier — not the proposing model — is the hash
+        # authority: path/media_type/extracted_by pass through, but sha256
+        # and bytes are computed here from the file on disk. A missing
+        # original is a warning, never fatal — the extracted text (above)
+        # is what verification runs against; the original only upgrades
+        # the viewing experience.
+        original = src.get("original")
+        if isinstance(original, dict) and isinstance(original.get("path"), str):
+            orig_path = workdir / original["path"]
+            media_type = original.get("media_type")
+            if media_type not in ORIGINAL_MEDIA_TYPES:
+                warnings.append({"id": key, "code": "original_bad_media_type",
+                                 "detail": f"unsupported media_type {media_type!r}; "
+                                           "original dropped"})
+            elif not orig_path.is_file():
+                warnings.append({"id": key, "code": "original_missing",
+                                 "detail": f"original file not found: "
+                                           f"{original['path']}; original dropped"})
+            else:
+                out_original = {
+                    "path": original["path"],
+                    "sha256": sha256_file(orig_path),
+                    "media_type": media_type,
+                    "bytes": orig_path.stat().st_size,
+                }
+                if isinstance(original.get("pages"), int) and original["pages"] >= 1:
+                    out_original["pages"] = original["pages"]
+                if isinstance(original.get("extracted_by"), str):
+                    out_original["extracted_by"] = original["extracted_by"]
+                entry["original"] = out_original
         if src.get("type") == "opinion" and src.get("cluster_id") is not None:
             m = CLUSTER_ID_LINE_RE.search(docs[key].raw)
             if m and m.group(1) != str(src["cluster_id"]):

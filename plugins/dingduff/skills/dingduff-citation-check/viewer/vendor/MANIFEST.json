@@ -1,0 +1,50 @@
+{
+  "_comment": "Vendored third-party viewer libraries, injected into STANDALONE review bundles only (never served to the MCP App iframe). build_review.py verifies each file's sha256 against this manifest before embedding and fails loudly on drift. To upgrade a library: download the pinned file from the recorded upstream URL, replace the file, update version+sha256 here, and re-run the skill's pytest suite.",
+  "libraries": [
+    {
+      "name": "pdfjs-dist (main)",
+      "file": "pdfjs/pdf.min.mjs",
+      "version": "5.7.284",
+      "sha256": "93a1c3b8106822070313c9a001623d086be33bc1f7743081eef27353f7266959",
+      "upstream": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-5.7.284.tgz (package/legacy/build/pdf.min.mjs)",
+      "license": "Apache-2.0",
+      "license_file": "pdfjs/LICENSE"
+    },
+    {
+      "name": "pdfjs-dist (worker)",
+      "file": "pdfjs/pdf.worker.min.mjs",
+      "version": "5.7.284",
+      "sha256": "cd10f3bdfa9bb5eb7632776675385f5948f4b09afe6b8b563b6199aa99d5da52",
+      "upstream": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-5.7.284.tgz (package/legacy/build/pdf.worker.min.mjs)",
+      "license": "Apache-2.0",
+      "license_file": "pdfjs/LICENSE"
+    },
+    {
+      "name": "pdfjs-dist (text-layer CSS)",
+      "file": "pdfjs/text_layer.css",
+      "version": "5.7.284",
+      "sha256": "411afe319cee3168bd57b8ee3d5d7285937daa65a5c2d7fd556be56b9bbab534",
+      "upstream": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-5.7.284.tgz (all .textLayer rules extracted verbatim from package/web/pdf_viewer.css)",
+      "license": "Apache-2.0",
+      "license_file": "pdfjs/LICENSE"
+    },
+    {
+      "name": "docx-preview",
+      "file": "docx-preview/docx-preview.min.js",
+      "version": "0.4.0",
+      "sha256": "051ef503f2677d53159a388b7384e950eda41ea4e47a103e5e36f124d7faea40",
+      "upstream": "https://registry.npmjs.org/docx-preview/-/docx-preview-0.4.0.tgz (package/dist/docx-preview.min.js)",
+      "license": "Apache-2.0",
+      "license_file": "docx-preview/LICENSE"
+    },
+    {
+      "name": "jszip",
+      "file": "jszip/jszip.min.js",
+      "version": "3.10.1",
+      "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e",
+      "upstream": "https://registry.npmjs.org/jszip/-/jszip-3.10.1.tgz (package/dist/jszip.min.js)",
+      "license": "MIT (dual MIT/GPLv3; used under MIT)",
+      "license_file": "jszip/LICENSE.markdown"
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "_comment": "Shared normalization test vectors. Consumed by pytest (against verify_anchors.normalize_with_map + strip) AND by the viewer's JS normalization port self-test. The two implementations must stay in lockstep: any rule change lands here first.",
+  "vectors": [
+    {
+      "name": "curly_double_quotes",
+      "input": "“warned prior to questioning”",
+      "expected": "\"warned prior to questioning\""
+    },
+    {
+      "name": "curly_apostrophe",
+      "input": "the court’s holding",
+      "expected": "the court's holding"
+    },
+    {
+      "name": "low_and_reversed_quotes",
+      "input": "„quote‟ and ‚single‛",
+      "expected": "\"quote\" and 'single'"
+    },
+    {
+      "name": "guillemets",
+      "input": "«guarded»",
+      "expected": "\"guarded\""
+    },
+    {
+      "name": "prime_marks",
+      "input": "5′ and 6″",
+      "expected": "5' and 6\""
+    },
+    {
+      "name": "em_dash",
+      "input": "the rule—and its exception",
+      "expected": "the rule-and its exception"
+    },
+    {
+      "name": "en_dash_range",
+      "input": "1991–1995",
+      "expected": "1991-1995"
+    },
+    {
+      "name": "minus_and_figure_dash",
+      "input": "−5 and ‒7",
+      "expected": "-5 and -7"
+    },
+    {
+      "name": "non_breaking_hyphen",
+      "input": "long‑standing",
+      "expected": "long-standing"
+    },
+    {
+      "name": "ellipsis_char",
+      "input": "warned…questioned",
+      "expected": "warned...questioned"
+    },
+    {
+      "name": "nbsp",
+      "input": "384 U.S. 436",
+      "expected": "384 U.S. 436"
+    },
+    {
+      "name": "thin_and_narrow_spaces",
+      "input": "a b c",
+      "expected": "a b c"
+    },
+    {
+      "name": "whitespace_collapse",
+      "input": "a  \n\t b",
+      "expected": "a b"
+    },
+    {
+      "name": "crlf_collapse",
+      "input": "line one\r\nline two",
+      "expected": "line one line two"
+    },
+    {
+      "name": "soft_hyphen_dropped",
+      "input": "lim­itation",
+      "expected": "limitation"
+    },
+    {
+      "name": "zero_width_space_dropped",
+      "input": "a​b",
+      "expected": "ab"
+    },
+    {
+      "name": "ltr_mark_dropped",
+      "input": "a‎b",
+      "expected": "ab"
+    },
+    {
+      "name": "hyphen_linebreak_joined",
+      "input": "a reasonable expecta-\ntion of privacy",
+      "expected": "a reasonable expectation of privacy"
+    },
+    {
+      "name": "hyphen_linebreak_multiline_whitespace",
+      "input": "expecta-  \n  tion",
+      "expected": "expectation"
+    },
+    {
+      "name": "hyphen_before_uppercase_kept",
+      "input": "Smith-\nJones",
+      "expected": "Smith- Jones"
+    },
+    {
+      "name": "hyphen_no_newline_kept",
+      "input": "well-known",
+      "expected": "well-known"
+    },
+    {
+      "name": "ligature_fi",
+      "input": "ﬁnal ruling",
+      "expected": "final ruling"
+    },
+    {
+      "name": "fullwidth_chars",
+      "input": "ＵＳＣ",
+      "expected": "USC"
+    },
+    {
+      "name": "case_preserved",
+      "input": "The Court HELD",
+      "expected": "The Court HELD"
+    },
+    {
+      "name": "leading_trailing_stripped",
+      "input": "  warned prior  ",
+      "expected": "warned prior"
+    },
+    {
+      "name": "mixed_sentence",
+      "input": "“He must be warned—prior to any questioning…”",
+      "expected": "\"He must be warned-prior to any questioning...\""
+    },
+    {
+      "name": "amp_entity",
+      "input": "TEX.BUS. &amp; COM.CODE ANN. § 17.41",
+      "expected": "TEX.BUS. & COM.CODE ANN. § 17.41"
+    },
+    {
+      "name": "numeric_nbsp_entity",
+      "input": "384 U.S.&#160;436",
+      "expected": "384 U.S. 436"
+    },
+    {
+      "name": "numeric_cr_entity",
+      "input": "line one&#13;\nline two",
+      "expected": "line one line two"
+    },
+    {
+      "name": "hex_apostrophe_entity",
+      "input": "landlord&#x27;s duty",
+      "expected": "landlord's duty"
+    },
+    {
+      "name": "named_sect_and_nbsp",
+      "input": "&sect;&nbsp;92.006",
+      "expected": "§ 92.006"
+    },
+    {
+      "name": "entity_curly_quotes_fold",
+      "input": "&ldquo;warned&rdquo; and &rsquo;tis",
+      "expected": "\"warned\" and 'tis"
+    },
+    {
+      "name": "entity_mdash_folds_to_hyphen",
+      "input": "rule&mdash;and",
+      "expected": "rule-and"
+    },
+    {
+      "name": "bare_ampersand_untouched",
+      "input": "AT&T and R&D and Q&A;",
+      "expected": "AT&T and R&D and Q&A;"
+    },
+    {
+      "name": "unknown_entity_left_literal",
+      "input": "&bogusname; stays",
+      "expected": "&bogusname; stays"
+    },
+    {
+      "name": "double_encoded_decodes_once",
+      "input": "&amp;#160;",
+      "expected": "&#160;"
+    },
+    {
+      "name": "entity_whitespace_run_collapses",
+      "input": "a&#160;&#13; &nbsp;b",
+      "expected": "a b"
+    },
+    {
+      "name": "page_marker_skipped_midword",
+      "input": "foo<<pg. 12>>bar",
+      "expected": "foobar"
+    },
+    {
+      "name": "page_marker_between_spaces",
+      "input": "end of page 11. <<pg. 12>> Start of page 12.",
+      "expected": "end of page 11. Start of page 12."
+    },
+    {
+      "name": "page_marker_at_hyphen_break",
+      "input": "expecta-\n<<pg. 12>>tion",
+      "expected": "expecta- tion"
+    }
+  ]
+}

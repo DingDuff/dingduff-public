@@ -1,0 +1,448 @@
+/* PDF.js text-layer stylesheet — extracted verbatim from pdfjs-dist
+   5.7.284 web/pdf_viewer.css (all .textLayer rules; Apache-2.0, see
+   LICENSE in this directory). The TextLayer JS positions/sizes spans via
+   these rules and custom properties (--total-scale-factor, --font-height,
+   --scale-x); ad-hoc substitutes render spans at the wrong scale. */
+
+.textLayer{
+  --csstools-color-scheme--light:initial;
+  color-scheme:only light;
+
+  position:absolute;
+  text-align:initial;
+  inset:0;
+  overflow:clip;
+  opacity:1;
+  line-height:1;
+  -webkit-text-size-adjust:none;
+     -moz-text-size-adjust:none;
+          text-size-adjust:none;
+  forced-color-adjust:none;
+  transform-origin:0 0;
+  caret-color:CanvasText;
+  z-index:0;
+}
+
+.textLayer.highlighting{
+    touch-action:none;
+  }
+
+.textLayer :is(span,br){
+    color:transparent;
+    position:absolute;
+    white-space:pre;
+    cursor:text;
+    transform-origin:0% 0%;
+  }
+
+.textLayer{
+  --min-font-size:1;
+  --text-scale-factor:calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv:calc(1 / var(--min-font-size));
+}
+
+.textLayer  > :not(.markedContent),.textLayer .markedContent span:not(.markedContent){
+    z-index:1;
+
+    --font-height:0;
+    font-size:calc(var(--text-scale-factor) * var(--font-height));
+
+    --scale-x:1;
+    --rotate:0deg;
+    transform:rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+  }
+
+.textLayer .markedContent{
+    display:contents;
+  }
+
+.textLayer span[role="img"]{
+    -webkit-user-select:none;
+       -moz-user-select:none;
+            user-select:none;
+    cursor:default;
+  }
+
+.textLayer .highlight{
+    --highlight-bg-color:rgb(180 0 170 / 0.25);
+    --highlight-selected-bg-color:rgb(0 100 0 / 0.25);
+    --highlight-backdrop-filter:none;
+    --highlight-selected-backdrop-filter:none;
+  }
+
+.textLayer .highlight{
+
+    margin:-1px;
+    padding:1px;
+    background-color:var(--highlight-bg-color);
+    -webkit-backdrop-filter:var(--highlight-backdrop-filter);
+            backdrop-filter:var(--highlight-backdrop-filter);
+    border-radius:4px;
+  }
+
+.appended:is(.textLayer .highlight){
+      position:initial;
+    }
+
+.begin:is(.textLayer .highlight){
+      border-radius:4px 0 0 4px;
+    }
+
+.end:is(.textLayer .highlight){
+      border-radius:0 4px 4px 0;
+    }
+
+.middle:is(.textLayer .highlight){
+      border-radius:0;
+    }
+
+.selected:is(.textLayer .highlight){
+      background-color:var(--highlight-selected-bg-color);
+      -webkit-backdrop-filter:var(--highlight-selected-backdrop-filter);
+              backdrop-filter:var(--highlight-selected-backdrop-filter);
+      scroll-margin-top:50px;
+    }
+
+.textLayer ::-moz-selection{
+    background:rgba(0 0 255 / 0.25);
+    background:color-mix(in srgb, AccentColor, transparent 75%);
+  }
+
+.textLayer ::selection{
+    background:rgba(0 0 255 / 0.25);
+    background:color-mix(in srgb, AccentColor, transparent 75%);
+  }
+
+.textLayer br::-moz-selection{
+    background:transparent;
+  }
+
+.textLayer br::selection{
+    background:transparent;
+  }
+
+.textLayer .endOfContent{
+    display:block;
+    position:absolute;
+    inset:100% 0 0;
+    z-index:0;
+    cursor:default;
+    -webkit-user-select:none;
+       -moz-user-select:none;
+            user-select:none;
+  }
+
+.textLayer.selecting .endOfContent{
+    top:0;
+  }
+
+.textLayerImages{
+  position:absolute;
+  inset:0;
+  -webkit-user-select:none;
+     -moz-user-select:none;
+          user-select:none;
+}
+
+.textLayerImages canvas{
+    position:absolute;
+    transform-origin:0% 0%;
+  }
+
+.textLayer.selecting ~ .annotationLayer section{
+    pointer-events:none;
+  }
+
+.textLayer.highlighting{
+    cursor:var(--editorFreeHighlight-editing-cursor);
+  }
+
+.textLayer.highlighting:not(.free) span{
+      cursor:var(--editorHighlight-editing-cursor);
+    }
+
+[role="img"]:is(.textLayer.highlighting:not(.free) span){
+        cursor:var(--editorFreeHighlight-editing-cursor);
+      }
+
+.textLayer.highlighting.free span{
+      cursor:var(--editorFreeHighlight-editing-cursor);
+    }
+
+:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar{
+    --editor-toolbar-delete-image:url(images/editor-toolbar-delete.svg);
+    --csstools-light-dark-toggle--76:var(--csstools-color-scheme--light) #2b2a33;
+    --editor-toolbar-bg-color:var(--csstools-light-dark-toggle--76, #f0f0f4);
+    --editor-toolbar-highlight-image:url(images/toolbarButton-editorHighlight.svg);
+    --csstools-light-dark-toggle--77:var(--csstools-color-scheme--light) #fbfbfe;
+    --editor-toolbar-fg-color:var(--csstools-light-dark-toggle--77, #2e2e56);
+    --editor-toolbar-border-color:#8f8f9d;
+    --editor-toolbar-hover-border-color:var(--editor-toolbar-border-color);
+    --csstools-light-dark-toggle--78:var(--csstools-color-scheme--light) #52525e;
+    --editor-toolbar-hover-bg-color:var(--csstools-light-dark-toggle--78, #e0e0e6);
+    --editor-toolbar-hover-fg-color:var(--editor-toolbar-fg-color);
+    --editor-toolbar-hover-outline:none;
+    --csstools-light-dark-toggle--79:var(--csstools-color-scheme--light) #0df;
+    --editor-toolbar-focus-outline-color:var(--csstools-light-dark-toggle--79, #0060df);
+    --editor-toolbar-shadow:0 2px 6px 0 rgb(58 57 68 / 0.2);
+    --editor-toolbar-height:28px;
+    --editor-toolbar-padding:2px;
+    --csstools-light-dark-toggle--80:var(--csstools-color-scheme--light) #54ffbd;
+    --alt-text-done-color:var(--csstools-light-dark-toggle--80, #2ac3a2);
+    --csstools-light-dark-toggle--81:var(--csstools-color-scheme--light) #80ebff;
+    --alt-text-warning-color:var(--csstools-light-dark-toggle--81, #0090ed);
+    --alt-text-hover-done-color:var(--alt-text-done-color);
+    --alt-text-hover-warning-color:var(--alt-text-warning-color);
+  }
+
+:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar{
+
+    display:flex;
+    width:-moz-fit-content;
+    width:fit-content;
+    height:var(--editor-toolbar-height);
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    cursor:default;
+    pointer-events:auto;
+    box-sizing:content-box;
+    padding:var(--editor-toolbar-padding);
+
+    position:absolute;
+    inset-inline-end:0;
+    inset-block-start:calc(100% + var(--editor-toolbar-vert-offset));
+
+    border-radius:6px;
+    background-color:var(--editor-toolbar-bg-color);
+    border:1px solid var(--editor-toolbar-border-color);
+    box-shadow:var(--editor-toolbar-shadow);
+  }
+
+.hidden:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar){
+      display:none;
+    }
+
+:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar):has(:focus-visible){
+      border-color:transparent;
+    }
+
+[dir="ltr"] :is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar){
+      transform-origin:100% 0;
+    }
+
+[dir="rtl"] :is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar){
+      transform-origin:0 0;
+    }
+
+:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:0;
+      height:100%;
+    }
+
+:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) button{
+        padding:0;
+      }
+
+:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .divider{
+        width:0;
+        height:calc(
+          2 * var(--editor-toolbar-padding) + var(--editor-toolbar-height)
+        );
+        border-left:1px solid var(--editor-toolbar-border-color);
+        border-right:none;
+        display:inline-block;
+        margin-inline:2px;
+      }
+
+:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .basic{
+        width:var(--editor-toolbar-height);
+      }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .basic)::before{
+          content:"";
+          -webkit-mask-repeat:no-repeat;
+                  mask-repeat:no-repeat;
+          -webkit-mask-position:center;
+                  mask-position:center;
+          display:inline-block;
+          background-color:var(--editor-toolbar-fg-color);
+          width:100%;
+          height:100%;
+        }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .basic):hover::before{
+          background-color:var(--editor-toolbar-hover-fg-color);
+        }
+
+.highlightButton:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .basic)::before{
+          -webkit-mask-image:var(--editor-toolbar-highlight-image);
+                  mask-image:var(--editor-toolbar-highlight-image);
+        }
+
+.commentButton:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .basic)::before{
+          -webkit-mask-image:var(--comment-edit-button-icon);
+                  mask-image:var(--comment-edit-button-icon);
+        }
+
+.deleteButton:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .basic)::before{
+          -webkit-mask-image:var(--editor-toolbar-delete-image);
+                  mask-image:var(--editor-toolbar-delete-image);
+        }
+
+:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons)  > *{
+        height:var(--editor-toolbar-height);
+      }
+
+:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons)  > :not(.divider){
+        border:none;
+        background-color:transparent;
+        cursor:pointer;
+      }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) > :not(.divider)):hover{
+          border-radius:2px;
+          background-color:var(--editor-toolbar-hover-bg-color);
+          color:var(--editor-toolbar-hover-fg-color);
+          outline:var(--editor-toolbar-hover-outline);
+          outline-offset:1px;
+        }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) > :not(.divider)):hover:active{
+            outline:none;
+          }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) > :not(.divider)):focus-visible{
+          border-radius:2px;
+          outline:2px solid var(--editor-toolbar-focus-outline-color);
+        }
+
+:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText{
+        --alt-text-add-image:url(images/altText_add.svg);
+        --alt-text-done-image:url(images/altText_done.svg);
+
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width:-moz-max-content;
+        width:max-content;
+        padding-inline:8px;
+        pointer-events:all;
+        font:menu;
+        font-weight:590;
+        font-size:12px;
+        color:var(--editor-toolbar-fg-color);
+      }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText):disabled{
+          pointer-events:none;
+        }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText)::before{
+          content:"";
+          -webkit-mask-image:var(--alt-text-add-image);
+                  mask-image:var(--alt-text-add-image);
+          -webkit-mask-repeat:no-repeat;
+                  mask-repeat:no-repeat;
+          -webkit-mask-position:center;
+                  mask-position:center;
+          display:inline-block;
+          width:12px;
+          height:13px;
+          background-color:var(--editor-toolbar-fg-color);
+          margin-inline-end:4px;
+        }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText):hover::before{
+          background-color:var(--editor-toolbar-hover-fg-color);
+        }
+
+.done:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText)::before{
+          -webkit-mask-image:var(--alt-text-done-image);
+                  mask-image:var(--alt-text-done-image);
+        }
+
+.new:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText)::before{
+            width:16px;
+            height:16px;
+            -webkit-mask-image:var(--new-alt-text-warning-image);
+                    mask-image:var(--new-alt-text-warning-image);
+            background-color:var(--alt-text-warning-color);
+            -webkit-mask-size:cover;
+                    mask-size:cover;
+          }
+
+.new:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText):hover::before{
+            background-color:var(--alt-text-hover-warning-color);
+          }
+
+.new.done:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText)::before{
+              -webkit-mask-image:var(--alt-text-done-image);
+                      mask-image:var(--alt-text-done-image);
+              background-color:var(--alt-text-done-color);
+            }
+
+.new.done:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText):hover::before{
+              background-color:var(--alt-text-hover-done-color);
+            }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText) .tooltip{
+          display:none;
+          word-wrap:anywhere;
+        }
+
+.show:is(:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText) .tooltip){
+            --csstools-light-dark-toggle--82:var(--csstools-color-scheme--light) #1c1b22;
+            --alt-text-tooltip-bg:var(--csstools-light-dark-toggle--82, #f0f0f4);
+            --csstools-light-dark-toggle--83:var(--csstools-color-scheme--light) #fbfbfe;
+            --alt-text-tooltip-fg:var(--csstools-light-dark-toggle--83, #15141a);
+            --alt-text-tooltip-border:#8f8f9d;
+            --csstools-light-dark-toggle--84:var(--csstools-color-scheme--light) #15141a;
+            --alt-text-tooltip-shadow:0 2px 6px 0 var(--csstools-light-dark-toggle--84, rgb(58 57 68 / 0.2));
+          }
+
+.show:is(:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .altText) .tooltip){
+
+            display:inline-flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            position:absolute;
+            top:calc(100% + 2px);
+            inset-inline-start:0;
+            padding-block:2px 3px;
+            padding-inline:3px;
+            max-width:300px;
+            width:-moz-max-content;
+            width:max-content;
+            height:auto;
+            font-size:12px;
+
+            border:0.5px solid var(--alt-text-tooltip-border);
+            background:var(--alt-text-tooltip-bg);
+            box-shadow:var(--alt-text-tooltip-shadow);
+            color:var(--alt-text-tooltip-fg);
+
+            pointer-events:none;
+          }
+
+:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .comment{
+        width:var(--editor-toolbar-height);
+      }
+
+:is(:is(:is(:is(.annotationEditorLayer :is(.freeTextEditor,.inkEditor,.stampEditor,.highlightEditor,.signatureEditor),.textLayer) .editToolbar) .buttons) .comment)::before{
+          content:"";
+          -webkit-mask-image:var(--comment-edit-button-icon);
+                  mask-image:var(--comment-edit-button-icon);
+          -webkit-mask-repeat:no-repeat;
+                  mask-repeat:no-repeat;
+          -webkit-mask-position:center;
+                  mask-position:center;
+          display:inline-block;
+          background-color:var(--editor-toolbar-fg-color);
+          width:100%;
+          height:100%;
+        }

@@ -1,6 +1,6 @@
 ---
 name: dingduff-citation-check
-description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.4.5)
+description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.5.0)
 ---
 
 # Cite-Check: verify a memo's citations against stored sources
@@ -93,9 +93,46 @@ CourtListener, the other side's brief, a factual PDF. Treat any such file as a
 `document` source:
 
 - Accept it as text/markdown (pasted in or saved into `sources/`), or extract
-  it first: `.docx` via `python3 <skill-dir>/scripts/extract_docx.py --in
-  <file>.docx --out sources/<name>.md`; a **text-layer** PDF via available PDF
-  tooling. There is **no OCR** — a scanned image-only PDF can't be checked.
+  it first:
+  - `.docx` via `python3 <skill-dir>/scripts/extract_docx.py --in <file>.docx
+    --out sources/<name>.md`.
+  - a **text-layer PDF**: extract preserving page breaks — `pdftotext -layout
+    <file>.pdf <tmp>.txt` (or any tool that emits form-feed `\f` page
+    delimiters) — then convert the form feeds to visible page markers:
+    ```
+    python3 <skill-dir>/scripts/mark_pdf_pages.py --in <tmp>.txt --out sources/<name>.md
+    ```
+    The `<<pg. N>>` markers become page pills in the review panel (real PDF
+    page numbers for pin-cite checking) and are invisible to quote matching.
+    If the document's printed page numbers don't start at 1 (an exhibit
+    excerpt), pass `--first-page <n>`. If the script warns about empty pages,
+    the PDF is likely scanned — there is **no OCR**; tell the attorney the
+    file can't be checked.
+  - **ORDERING RULE (load-bearing):** page markers and any other text fixes
+    happen BEFORE `verify_anchors.py` runs. Never edit an extracted file after
+    verification — cites.json hashes the file and records offsets into it, so
+    any later edit invalidates the whole check.
+- **Keep the original file** alongside the extraction, at
+  `sources/originals/<name>.pdf` (or `.docx`), and record it in the source's
+  proposals entry:
+  ```json
+  "original": { "path": "sources/originals/<name>.pdf",
+                "media_type": "application/pdf",
+                "pages": 24,
+                "extracted_by": "pdftotext -layout + mark_pdf_pages.py" }
+  ```
+  (`media_type` for Word files:
+  `application/vnd.openxmlformats-officedocument.wordprocessingml.document`.)
+  The standalone review bundle then shows the attorney the ORIGINAL document —
+  real pages, native formatting — with the verified highlights overlaid, all
+  fully local. Originals over 20 MB won't embed (the text view still works);
+  say so up front. The verifier recomputes the hash and size itself.
+- For a deposition/hearing **transcript** supplied as text, set
+  `"render_hint": "transcript"` on the source so the panel renders it in
+  transcript format (monospace, line-number gutter, page pills). If the
+  transcript has machine-regular page headers, convert them to `<<pg. N>>`
+  markers during prep (before verification) so its page pills line up with
+  page:line pin cites.
 - Map it as key `doc-{filename stem}`, with `type: "document", path, title`
   (a human label, e.g. `"Defendant's MSJ Brief"`, `"Restatement (Second) of
   Torts § 46"`) and `kind` ∈ `case | secondary | brief | evidence | other`.
@@ -168,7 +205,13 @@ Write `.cite-check/proposals.json` (create the scratch dir):
     "doc-restatement_torts_46": { "type": "document",
                   "path": "sources/restatement_torts_46.md",
                   "title": "Restatement (Second) of Torts § 46",
-                  "kind": "secondary" }
+                  "kind": "secondary" },
+    "doc-defendants_msj": { "type": "document",
+                  "path": "sources/defendants_msj.md",
+                  "title": "Defendant's MSJ Brief", "kind": "brief",
+                  "original": { "path": "sources/originals/defendants_msj.pdf",
+                                "media_type": "application/pdf",
+                                "extracted_by": "pdftotext -layout + mark_pdf_pages.py" } }
   },
   "citations": [
     { "id": "c001", "source": "cl-12345",
@@ -252,11 +295,17 @@ clients without app support):
 python3 <skill-dir>/scripts/build_review.py --cites cites.json --out review.html
 ```
 
-(add `--review review.json` if a prior review export exists). Check the
-tool result's `structuredContent.panel` field: if it is `"may_not_render"`,
-LEAD with the fallback — tell the user to open `review.html` in a browser
-rather than waiting for a panel that won't appear. Otherwise mention
-review.html as the backup if no panel appears above.
+(add `--review review.json` if a prior review export exists). When sources
+carry `original` files (Step 2), the bundle embeds them plus the PDF/Word
+viewer libraries, so review.html will be several MB larger — it is still one
+fully local file; original documents never leave the machine, and the panel
+offers an Original ↔ Text toggle per source. Pass `--no-originals` for a
+text-only bundle. Check the tool result's `structuredContent.panel` field:
+if it is `"may_not_render"`, LEAD with the fallback — tell the user to open
+`review.html` in a browser rather than waiting for a panel that won't appear.
+Otherwise mention review.html as the backup if no panel appears above.
+(In-conversation MCP panels always use the text view; native rendering is a
+standalone-bundle feature.)
 
 ## Step 8 — Summarize for the attorney
 
