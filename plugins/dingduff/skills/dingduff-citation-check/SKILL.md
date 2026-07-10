@@ -1,6 +1,6 @@
 ---
 name: dingduff-citation-check
-description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.5.0)
+description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html that can display supplied PDF/Word sources in native format with the verified highlights overlaid) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.5.5)
 ---
 
 # Cite-Check: verify a memo's citations against stored sources
@@ -112,9 +112,10 @@ CourtListener, the other side's brief, a factual PDF. Treat any such file as a
     happen BEFORE `verify_anchors.py` runs. Never edit an extracted file after
     verification — cites.json hashes the file and records offsets into it, so
     any later edit invalidates the whole check.
-- **Keep the original file** alongside the extraction, at
+- **Always keep the original PDF/Word file** alongside the extraction, at
   `sources/originals/<name>.pdf` (or `.docx`), and record it in the source's
-  proposals entry:
+  proposals entry — **this `original` block is what makes the review DISPLAY
+  THE PDF/Word document (Step 7); do not skip it for a PDF or Word source:**
   ```json
   "original": { "path": "sources/originals/<name>.pdf",
                 "media_type": "application/pdf",
@@ -123,10 +124,14 @@ CourtListener, the other side's brief, a factual PDF. Treat any such file as a
   ```
   (`media_type` for Word files:
   `application/vnd.openxmlformats-officedocument.wordprocessingml.document`.)
-  The standalone review bundle then shows the attorney the ORIGINAL document —
+  The standalone `review.html` then shows the attorney the ORIGINAL document —
   real pages, native formatting — with the verified highlights overlaid, all
-  fully local. Originals over 20 MB won't embed (the text view still works);
-  say so up front. The verifier recomputes the hash and size itself.
+  fully local. (Only `review.html` renders natively; the in-conversation panel
+  is text-only — see Step 7.) The verifier recomputes the hash and size itself;
+  if it warns `original_missing` or `original_bad_media_type`, the original was
+  dropped and that source silently falls back to text — fix the path or
+  media_type before building the bundle. Originals over 20 MB won't embed (the
+  text view still works); say so up front.
 - For a deposition/hearing **transcript** supplied as text, set
   `"render_hint": "transcript"` on the source so the panel renders it in
   transcript format (monospace, line-number gutter, page pills). If the
@@ -275,6 +280,22 @@ Step 5 so the shifted anchors are re-validated before the panel opens.
 
 ## Step 7 — Open the attorney review
 
+There are two review surfaces, and for PDFs/Word docs the difference is the
+whole point of v2.5.0's native rendering:
+
+- **In-conversation panel** (`citecheck_review` MCP tool) — renders the review
+  inline but is **text-only**: every source, PDF included, shows as extracted
+  text with highlights. It never displays native pages.
+- **Standalone `review.html`** (`build_review.py`) — when a source carries an
+  `original` (Step 2), this **displays the actual PDF/Word document** with the
+  verified highlights overlaid and an Original ↔ Text toggle per source. It is
+  the ONLY surface that shows the real document.
+
+Always produce BOTH. Whenever any source has a PDF/Word original, tell the
+attorney explicitly to open `review.html` to see the real document — if you
+only point them at the inline panel, the tool looks like it handles text only
+(it does not).
+
 Call the `citecheck_review` MCP tool with:
 - `memo_text`: the memo file content, passed VERBATIM (do not re-wrap,
   reformat, or "clean up" — the panel verifies it against the memo's
@@ -287,25 +308,29 @@ Call the `citecheck_review` MCP tool with:
   opinions or statutes here (those are fetched live from DingDuff). Omit the
   argument entirely when there are no document sources.
 
-This renders the two-pane review panel in the conversation. Then ALWAYS
-build the standalone fallback too (cheap, local, and the only path on
-clients without app support):
+This renders the two-pane review panel in the conversation (text view). Then
+ALWAYS build the standalone bundle too — it is cheap and local, the only path
+on clients without app support, and the only way to show native PDF/Word pages:
 
 ```
 python3 <skill-dir>/scripts/build_review.py --cites cites.json --out review.html
 ```
 
-(add `--review review.json` if a prior review export exists). When sources
-carry `original` files (Step 2), the bundle embeds them plus the PDF/Word
-viewer libraries, so review.html will be several MB larger — it is still one
-fully local file; original documents never leave the machine, and the panel
-offers an Original ↔ Text toggle per source. Pass `--no-originals` for a
-text-only bundle. Check the tool result's `structuredContent.panel` field:
-if it is `"may_not_render"`, LEAD with the fallback — tell the user to open
-`review.html` in a browser rather than waiting for a panel that won't appear.
-Otherwise mention review.html as the backup if no panel appears above.
-(In-conversation MCP panels always use the text view; native rendering is a
-standalone-bundle feature.)
+(add `--review review.json` if a prior review export exists). **Leave originals
+embedded (the default) whenever a source has an `original`** — that is what puts
+the actual PDF/Word document and its viewer into the bundle; only pass
+`--no-originals` for a deliberately text-only bundle. With originals the file is
+several MB larger but still one fully local file; original documents never leave
+the machine, and each source offers an Original ↔ Text toggle. build_review's
+stdout reports `originals_embedded`: **if that is 0 when you supplied a PDF/Word
+source, the original was not preserved or the `original` block was wrong (Step 2)
+— fix it and rebuild, or the attorney sees text only.**
+
+Check the tool result's `structuredContent.panel` field: if it is
+`"may_not_render"`, LEAD with review.html — tell the user to open it in a
+browser rather than waiting for a panel that won't appear. Otherwise, still
+point the attorney to review.html as the way to see native PDF/Word pages (and
+as the backup if no panel appears above).
 
 ## Step 8 — Summarize for the attorney
 
@@ -315,7 +340,9 @@ warnings. Then explicitly call out, in prose:
 - every `source_missing` (unverifiable) citation,
 - every `no_quote_claimed` citation,
 - any verifier warnings (`multiple_matches`, `short_quote`,
-  `match_in_header`, `cluster_id_mismatch`).
+  `match_in_header`, `cluster_id_mismatch`), and — because it silently
+  downgrades a PDF/Word source to text — any `original_missing` /
+  `original_bad_media_type` warning.
 
 Explain next steps: review each citation in the panel (j/k to move, 1–3 for
 verdicts), then click "Send review to Claude" (panel) or "Export
