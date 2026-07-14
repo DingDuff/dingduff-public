@@ -81,6 +81,17 @@ WORD_HYPHEN_RE = re.compile(r"(?<=\w)-(?=\w)")
 # way Cf chars (ZWSPs etc.) are handled below. Keep this regex in lockstep
 # with PAGE_MARKER_RE in review_viewer.html.
 PAGE_MARKER_RE = re.compile(r"<<pg\. \d+>>")
+# Markdown syntax emitted by opinion_store's renderer (html_to_markdown)
+# around body text: line-leading block-quote prefixes ("> ", nested "> > ")
+# and footnote marks ("[^1]"). Both are presentation, not content, and are
+# treated as zero-width so a quote spanning a block quote or a footnote
+# mark still anchors. The "[^" shape can't occur in real legal text (unlike
+# bare "[7]", which is live citation syntax, e.g. "CPLR 3211[a][7]"), so
+# footnote skipping has no false positives; block-quote skipping only fires
+# on ">" at the start of a line. Keep BOTH in lockstep with
+# review_viewer.html.
+BLOCKQUOTE_PREFIX_RE = re.compile(r"(?:>[ \t]*)+")
+FOOTNOTE_MARK_RE = re.compile(r"\[\^[^\]\s]{1,8}\]")
 
 
 # ---------------------------------------------------------------------------
@@ -123,15 +134,20 @@ def normalize_with_map(text: str) -> Tuple[str, List[int], List[int]]:
     HTML character reference maps MANY raw chars to one normalized char; the
     old `idx[e-1] + 1` end convention would cut a trailing entity in half.
 
-    Rules (in order): decode HTML character references; drop Cf chars;
-    collapse Unicode whitespace runs (including whitespace entities) to one
-    space; fold dashes to '-' with hyphen-linebreak de-hyphenation; fold
-    curly quotes; expand the ellipsis char; per-char NFKC for the rest.
+    Rules (in order): decode HTML character references; drop Cf chars and
+    zero-width markdown tokens (`<<pg. N>>`, line-leading "> " prefixes,
+    "[^n]" footnote marks); collapse Unicode whitespace runs (including
+    whitespace entities) to one space; fold dashes to '-' with
+    hyphen-linebreak de-hyphenation; fold curly quotes; expand the ellipsis
+    char; per-char NFKC for the rest.
     """
     out: List[str] = []
     starts: List[int] = []
     ends: List[int] = []
     i, n = 0, len(text)
+    # True at the start of the text and after any whitespace run containing
+    # a newline — the only positions where a block-quote prefix can occur.
+    line_start = True
     while i < n:
         # Skip `<<pg. N>>` page markers entirely — contribute zero normalized
         # chars and no entries to starts/ends, so they're invisible to
@@ -142,25 +158,42 @@ def normalize_with_map(text: str) -> Tuple[str, List[int], List[int]]:
             if pm:
                 i = pm.end()
                 continue
+        # Line-leading "> " block-quote prefixes and "[^n]" footnote marks
+        # are renderer syntax, not content — zero-width like page markers.
+        if line_start and text[i] == ">":
+            bq = BLOCKQUOTE_PREFIX_RE.match(text, i)
+            if bq:
+                i = bq.end()
+                continue
+        if text.startswith("[^", i):
+            fm = FOOTNOTE_MARK_RE.match(text, i)
+            if fm:
+                i = fm.end()
+                continue
         ch, w = _decode_entity_at(text, i)
         if _is_dropped(ch):
             i += w
             continue
         if ch.isspace():
             run_start = i
+            saw_nl = ch in "\r\n"
             i += w
             while i < n:
                 c2, w2 = _decode_entity_at(text, i)
                 if c2.isspace() or _is_dropped(c2):
+                    if c2 in "\r\n":
+                        saw_nl = True
                     i += w2
                 else:
                     break
+            line_start = saw_nl
             if out and out[-1] == " ":
                 continue
             out.append(" ")
             starts.append(run_start)
             ends.append(i)
             continue
+        line_start = False
         if ch == "-" or ch in DASHES:
             # Hyphen-linebreak de-hyphenation: a hyphen directly after a
             # letter, followed by whitespace containing a newline and then a

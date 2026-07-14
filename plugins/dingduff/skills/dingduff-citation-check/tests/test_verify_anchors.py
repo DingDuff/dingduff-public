@@ -207,6 +207,53 @@ class TestSourceAnchoring:
         assert doc.raw[anchors[0].start:anchors[0].end] == anchors[0].quote
 
 
+class TestRendererMarkdownAnchoring:
+    """opinion_store's html_to_markdown renderer emits `> ` block quotes,
+    `[^n]` footnote marks and `<<pg. N>>` page markers; all three are
+    zero-width during matching so quotes spanning them still anchor."""
+
+    def test_quote_spanning_blockquote_paragraphs(self, va, H):
+        body = (
+            "The manual instructs:\n\n"
+            "> The guilt of the subject is to be posited as a fact.\n\n"
+            "> Interrogation should proceed without pause."
+        )
+        doc = va.Document(H.make_opinion_md(body=body))
+        quote = ("The guilt of the subject is to be posited as a fact. "
+                 "Interrogation should proceed without pause.")
+        anchors, failure, _ = _single_anchor(va, doc, quote)
+        assert failure is None
+        assert anchors[0].match == "normalized"
+        # The raw slice keeps the renderer's `> ` prefix.
+        assert "\n> Interrogation" in anchors[0].quote
+
+    def test_quote_spanning_footnote_mark(self, va, H):
+        body = ("Both courts arrived at varying conclusions.[^1] A wealth of "
+                "scholarly material followed.")
+        doc = va.Document(H.make_opinion_md(body=body))
+        quote = "arrived at varying conclusions. A wealth of scholarly material"
+        anchors, failure, _ = _single_anchor(va, doc, quote)
+        assert failure is None
+        assert "[^1]" in anchors[0].quote
+
+    def test_footnote_definition_body_quotable(self, va, H):
+        body = ("The rule was applied.[^2]\n\n**Footnotes**\n\n"
+                "[^2]: Compare the earlier decisions rejecting this approach.")
+        doc = va.Document(H.make_opinion_md(body=body))
+        anchors, failure, _ = _single_anchor(
+            va, doc, "Compare the earlier decisions rejecting this approach.")
+        assert failure is None
+
+    def test_bracketed_number_still_content(self, va, H):
+        # NY-style bracket cites must NOT be skipped: `[^n]` only.
+        body = "The motion was made under CPLR 3211[a][7] and denied."
+        doc = va.Document(H.make_opinion_md(body=body))
+        anchors, failure, _ = _single_anchor(
+            va, doc, "under CPLR 3211[a][7] and denied")
+        assert failure is None
+        assert anchors[0].match == "exact"
+
+
 class TestEllipsisAnchoring:
     def test_two_segments(self, va, opinion_doc):
         quote = ("The limitations period does not begin to run ... that forms "
