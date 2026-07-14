@@ -200,6 +200,56 @@
       "name": "page_marker_at_hyphen_break",
       "input": "expecta-\n<<pg. 12>>tion",
       "expected": "expecta- tion"
+    },
+    {
+      "name": "blockquote_prefix_line_start",
+      "input": "He testified:\n> I saw nothing that night.",
+      "expected": "He testified: I saw nothing that night."
+    },
+    {
+      "name": "blockquote_prefix_at_text_start",
+      "input": "> The court finds as follows.",
+      "expected": "The court finds as follows."
+    },
+    {
+      "name": "blockquote_prefix_nested",
+      "input": "quoting:\n> > deeply quoted text",
+      "expected": "quoting: deeply quoted text"
+    },
+    {
+      "name": "blockquote_blank_quote_line",
+      "input": "> first paragraph\n>\n> second paragraph",
+      "expected": "first paragraph second paragraph"
+    },
+    {
+      "name": "gt_mid_line_not_stripped",
+      "input": "where 5 > 3 and x > y hold",
+      "expected": "where 5 > 3 and x > y hold"
+    },
+    {
+      "name": "footnote_mark_zero_width",
+      "input": "varying conclusions.[^1] A wealth of material",
+      "expected": "varying conclusions. A wealth of material"
+    },
+    {
+      "name": "footnote_mark_star_label",
+      "input": "SUMMARY[^*] follows",
+      "expected": "SUMMARY follows"
+    },
+    {
+      "name": "footnote_def_label_stripped",
+      "input": "[^12]: Compare United States v. Childress",
+      "expected": ": Compare United States v. Childress"
+    },
+    {
+      "name": "bracket_number_is_content_not_footnote",
+      "input": "CPLR 3211[a][7] motion",
+      "expected": "CPLR 3211[a][7] motion"
+    },
+    {
+      "name": "footnote_mark_then_page_marker",
+      "input": "the end.[^3]<<pg. 12>> Next sentence",
+      "expected": "the end. Next sentence"
     }
   ]
 }

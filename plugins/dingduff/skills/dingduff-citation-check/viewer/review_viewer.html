@@ -1994,6 +1994,15 @@
   // lastIndex-seeded exec depends on it).
   var PAGE_MARKER_RE = /<<pg\. (\d+)>>/g;
 
+  // Markdown syntax emitted by opinion_store's renderer: line-leading
+  // block-quote prefixes ("> ", nested "> > ") and footnote marks ("[^1]").
+  // Presentation, not content — zero-width during matching, exactly like
+  // page markers. LOCKSTEP with BLOCKQUOTE_PREFIX_RE / FOOTNOTE_MARK_RE in
+  // verify_anchors.py. Both are lastIndex-seeded /g instances like
+  // PAGE_MARKER_RE above.
+  var BLOCKQUOTE_PREFIX_RE = /(?:>[ \t]*)+/g;
+  var FOOTNOTE_MARK_RE = /\[\^[^\]\s]{1,8}\]/g;
+
   // Effective character at i: {ch, w} for a decodable reference, else null.
   // hasOwnProperty guards against names like "constructor" hitting the
   // Object prototype.
@@ -2024,6 +2033,10 @@
   function normalizeWithMap(text) {
     var out = [], starts = [], ends = [];
     var i = 0, n = text.length;
+    // True at the start of the text and after any whitespace run containing
+    // a newline — the only positions where a block-quote prefix can occur.
+    // LOCKSTEP with normalize_with_map's line_start.
+    var lineStart = true;
     function push(chunk, s, e) {
       for (var q = 0; q < chunk.length; q++) {
         out.push(chunk[q]); starts.push(s); ends.push(e);
@@ -2039,19 +2052,37 @@
         var pm = PAGE_MARKER_RE.exec(text);
         if (pm && pm.index === i) { i = pm.index + pm[0].length; continue; }
       }
+      // Line-leading "> " block-quote prefixes and "[^n]" footnote marks
+      // are renderer syntax, not content — zero-width like page markers.
+      if (lineStart && text.charCodeAt(i) === 62 /* > */) {
+        BLOCKQUOTE_PREFIX_RE.lastIndex = i;
+        var bq = BLOCKQUOTE_PREFIX_RE.exec(text);
+        if (bq && bq.index === i) { i += bq[0].length; continue; }
+      }
+      if (text.charCodeAt(i) === 91 /* [ */ && text.charCodeAt(i + 1) === 94 /* ^ */) {
+        FOOTNOTE_MARK_RE.lastIndex = i;
+        var fm = FOOTNOTE_MARK_RE.exec(text);
+        if (fm && fm.index === i) { i += fm[0].length; continue; }
+      }
       var eff = effectiveCharAt(text, i);
       var ch = eff.ch, w = eff.w;
       if (CF_RE.test(ch)) { i += w; continue; }
       if (WS_RE.test(ch)) {
         var s0 = i;
+        var sawNl = ch === "\n" || ch === "\r";
         i += w;
         while (i < n) {
           var e2 = effectiveCharAt(text, i);
-          if (WS_RE.test(e2.ch) || CF_RE.test(e2.ch)) { i += e2.w; } else { break; }
+          if (WS_RE.test(e2.ch) || CF_RE.test(e2.ch)) {
+            if (e2.ch === "\n" || e2.ch === "\r") { sawNl = true; }
+            i += e2.w;
+          } else { break; }
         }
+        lineStart = sawNl;
         if (!lastIsSpace()) { push(" ", s0, i); }
         continue;
       }
+      lineStart = false;
       if (ch === "-" || DASHES.indexOf(ch) !== -1) {
         var j = i + w, sawNl = false;
         while (j < n) {
