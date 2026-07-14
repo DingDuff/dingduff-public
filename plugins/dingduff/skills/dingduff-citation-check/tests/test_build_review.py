@@ -319,11 +319,48 @@ class TestOriginalsEmbedding:
     def test_oversized_original_skipped(self, tmp_path, H, br, monkeypatch):
         orig, cites = _project_with_original(tmp_path, H)
         monkeypatch.setattr(br, "MAX_ORIGINAL_BYTES", 4)
-        originals, skipped, failures = br.embed_originals(
-            cites, tmp_path, force=False)
+        originals, skipped, failures = br.embed_originals(cites, tmp_path)
         assert originals == {}
         assert skipped == [{"key": "cl-12345", "reason": "too_large"}]
         assert failures == []
+
+    def test_text_plain_original_not_embedded(self, tmp_path, H, br):
+        # text/plain originals are provenance metadata; the viewer has no
+        # native text-file renderer, so embedding the bytes is dead weight.
+        orig, cites = _project_with_original(tmp_path, H,
+                                             media_type="text/plain")
+        originals, skipped, failures = br.embed_originals(cites, tmp_path)
+        assert originals == {}
+        assert skipped == [{"key": "cl-12345", "reason": "not_renderable"}]
+        assert failures == []
+
+    def test_first_page_emitted_for_offset_exhibits(self, tmp_path, H):
+        # --first-page exhibits: printed numbers start at 461, so the viewer
+        # needs first_page to map printed pages back to PDF ordinals.
+        doc_text = ("<<pg. 461>>\nIntro.\n"
+                    "<<pg. 462>>\nThe corporation waived its objection.\n")
+        memo = H.DEFAULT_MEMO + "Waiver on the record. Ex. A at 462.\n"
+        H.write_project(tmp_path, memo=memo, sources={
+            "sources/smith_v_jones_12345.md": H.make_opinion_md(),
+            "sources/tex_prop_code_92_006.md": H.make_statute_md(),
+            "sources/exhibit_a.md": doc_text,
+        })
+        sources = H.base_proposals([])["sources"]
+        sources["doc-exhibit_a"] = {"type": "document",
+                                    "path": "sources/exhibit_a.md",
+                                    "title": "Exhibit A", "kind": "evidence"}
+        citations = [H.citation("c001", source="doc-exhibit_a",
+                                cite_text="Ex. A at 462.",
+                                proposition="The objection was waived.",
+                                quotes=["The corporation waived its objection"])]
+        code, _, cites, err = H.run_cli(tmp_path, H.base_proposals(citations, sources=sources))
+        assert code == 0, err
+        code, out, err = H.run_build(tmp_path)
+        assert code == 0, err
+        payload = H.extract_payload((tmp_path / "review.html").read_text(encoding="utf-8"))
+        doc = payload["source_docs"]["doc-exhibit_a"]
+        assert doc["anchor_pages"] == {"c001:0": 462}
+        assert doc["first_page"] == 461
 
     def test_vendor_manifest_drift_is_fatal(self, tmp_path, H, br):
         # A tampered vendored library must never be embedded silently.

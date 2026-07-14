@@ -588,3 +588,15 @@ class TestOriginalProvenance:
         code, _, cites, err = H.run_cli(tmp_path, proposals)
         assert code == 0, err
         assert cites["sources"]["cl-12345"]["render_hint"] == "transcript"
+
+    def test_render_hint_invalid_dropped_with_warning(self, tmp_path, H):
+        # An unknown hint must not flow into cites.json — it would violate
+        # the published schema enum and silently do nothing in the viewer.
+        H.write_project(tmp_path)
+        proposals = H.base_proposals([H.citation("c001", quotes=[
+            'The "totality of the circumstances" governs our review.'])])
+        proposals["sources"]["cl-12345"]["render_hint"] = "deposition"
+        code, report, cites, err = H.run_cli(tmp_path, proposals)
+        assert code == 0, err
+        assert "render_hint" not in cites["sources"]["cl-12345"]
+        assert any(w["code"] == "render_hint_invalid" for w in report["warnings"])
