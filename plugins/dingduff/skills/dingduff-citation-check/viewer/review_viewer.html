@@ -957,6 +957,36 @@
                        // (two overlapping builds would stack containers and
                        // scroll to the wrong one)
 
+  function releaseOtherPdfSources(keepKey) {
+    // Free the GPU/canvas + worker memory of every PDF source except the one
+    // now on screen. Without this each opened PDF's page bitmaps and document
+    // object stay resident for the life of the page; across many citations
+    // the accumulated canvas memory overruns the tab's GPU budget, the GPU
+    // process crashes, and every subsequent render (any citation, PDF or
+    // text) paints black until the page is reloaded. Re-visiting a released
+    // source simply re-opens and rebuilds it.
+    Object.keys(pdfOpenCache).forEach(function (k) {
+      if (k === keepKey) { return; }
+      var pending = pdfOpenCache[k];
+      delete pdfOpenCache[k];
+      Object.keys(sourceCache).forEach(function (ck) {
+        if (ck === k || ck.indexOf(k + "|") === 0) { delete sourceCache[ck]; }
+      });
+      Promise.resolve(pending).then(function (info) {
+        try { if (info && info.pdf) { info.pdf.destroy(); } } catch (e) {}
+      }, function () {});
+    });
+    // Rendered Word documents accumulate the same way — plain DOM rather
+    // than GPU canvas, but a whole rendered .docx per visited source still
+    // grows without bound. Text views stay cached; they are cheap.
+    Object.keys(sourceCache).forEach(function (ck) {
+      var entry = sourceCache[ck];
+      if (entry && entry.kind === "docx" && ck.indexOf(keepKey + "|") !== 0) {
+        delete sourceCache[ck];
+      }
+    });
+  }
+
   function renderSource(key, focusCid) {
     var body = $("source-body");
     var meta = src.cites.sources[key] || {};
@@ -972,6 +1002,7 @@
     }
     body.replaceChildren();
     anchorEls = {};
+    releaseOtherPdfSources(key);
 
     var cap = nativeCapability(key);
     var mode = currentMode(key);
@@ -2264,6 +2295,12 @@
   var pdfLibPromise = null;   // Promise<pdfjs module>
   var pdfOpenCache = {};      // source key -> Promise<{pdf, labels}>
 
+  // Rasterization cap: at full devicePixelRatio a Retina (2x) display pays
+  // 4x the layout's pixels in canvas memory per page. 1.5x stays sharp for
+  // body text and keeps highlight/text-layer alignment (overlays are
+  // CSS-positioned, not canvas-space) at ~1.8x less memory on a 2x display.
+  var MAX_PDF_OUTPUT_SCALE = 1.5;
+
   function bootPdfJs() {
     if (pdfLibPromise) { return pdfLibPromise; }
     pdfLibPromise = new Promise(function (resolve, reject) {
@@ -2343,7 +2380,8 @@
   }
 
   function renderNativePdf(key, focusCid, cacheKey, done) {
-    openPdf(key).then(function (info) {
+    var opened = openPdf(key);
+    opened.then(function (info) {
       return looksScanned(info.pdf).then(function (scanned) {
         if (scanned) {
           var e = new Error("scanned");
@@ -2353,9 +2391,19 @@
         return buildPdfEntry(key, info);
       });
     }).then(function (entry) {
-      sourceCache[cacheKey] = entry;
+      // Cache only while this build's document is still the resident one —
+      // releaseOtherPdfSources may have destroyed it mid-build (navigate
+      // away and back), and a cached entry over a destroyed document would
+      // permanently render blank pages on the next visit.
+      if (pdfOpenCache[key] === opened) { sourceCache[cacheKey] = entry; }
       done(entry);
     }).catch(function (err) {
+      if (pdfOpenCache[key] !== opened) {
+        // The document was released mid-build (navigated away), aborting
+        // in-flight work — not a render failure; the source must not be
+        // downgraded to the text view over it.
+        return;
+      }
       nativeDisabled[key] = {
         cap: "pdf",
         reason: err && err.scanned
@@ -2672,7 +2720,8 @@
         wrapper.style.setProperty("--user-unit", "1");
 
         var canvas = document.createElement("canvas");
-        var outputScale = window.devicePixelRatio || 1;
+        var outputScale = Math.min(window.devicePixelRatio || 1,
+                                   MAX_PDF_OUTPUT_SCALE);
         canvas.width = Math.floor(vp.width * outputScale);
         canvas.height = Math.floor(vp.height * outputScale);
         wrapper.insertBefore(canvas, wrapper.firstChild);
