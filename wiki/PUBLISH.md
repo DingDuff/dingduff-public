@@ -32,6 +32,8 @@ cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Browser-Setup.md .
 cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Team-and-Enterprise.md .
 cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Troubleshooting.md .
 cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Skills.md .
+cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Citation-Checking.md .
+cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/ChatGPT.md .
 cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/_Sidebar.md .
 
 git add .

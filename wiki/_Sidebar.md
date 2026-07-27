@@ -1,6 +1,7 @@
 ### DingDuff Help
 
 - [Home / Install](Home)
+- [DingDuff with ChatGPT (beta)](ChatGPT)
 - [Browser Setup](Browser-Setup)
 - [Team & Enterprise](Team-and-Enterprise)
 - [Troubleshooting](Troubleshooting)
