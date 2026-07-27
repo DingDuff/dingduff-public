@@ -1,6 +1,6 @@
 ---
 name: dingduff-legal-research
-description: Research the law on a question — find, retrieve, read, and validate the controlling cases, statutes, and regulations; map the citation network and the statutory landscape; and verify everything is still good law. Use for ANY legal-research task — "what's the law on X," "find cases/statutes on Y," "research precedent," "is this still good law," "map the statutory scheme," "what does § __ mean" — and as the authority-gathering step behind any analysis, memo, or brief. Research is thorough by default. It interleaves with dingduff-legal-analysis (analysis guides research; research guides analysis) and feeds dingduff-legal-writing. Method detail for case law, statutes, and validity lives in references/ and is loaded as needed. (v2.3)
+description: Research the law on a question — find, retrieve, read, and validate the controlling cases, statutes, and regulations; map the citation network and the statutory landscape; and verify everything is still good law. Use for ANY legal-research task — "what's the law on X," "find cases/statutes on Y," "research precedent," "is this still good law," "map the statutory scheme," "what does § __ mean" — and as the authority-gathering step behind any analysis, memo, or brief. Research is thorough by default. It interleaves with dingduff-legal-analysis (analysis guides research; research guides analysis). Method detail for case law, statutes, and validity lives in references/ and is loaded as needed. (v2.3)
 ---
 
 # Legal Research
@@ -67,4 +67,4 @@ Naming: cases `<cluster_id>_<short_case_name>_<reporter_cite>.md` (e.g., `107252
 
 ## Related skills
 
-Interleaves with `dingduff-legal-analysis` (the reasoning it feeds and takes direction from). Downstream: `dingduff-legal-writing` (drafts from the authority + analysis). QC: `dingduff-legal-citation-format`, `dingduff-citation-check`.
+Interleaves with `dingduff-legal-analysis` (the reasoning it feeds and takes direction from). QC: `dingduff-legal-citation-format`, `dingduff-citation-check`.
