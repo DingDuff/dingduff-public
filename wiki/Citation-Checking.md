@@ -28,7 +28,7 @@ opinion letter, or any block of text with citations. Hand it your document as
 It checks those citations against:
 
 - **Authorities you pulled from DingDuff** — opinions and statutes you saved with
-  the `opinion_store` and `statute_store` tools.
+  the `fetch_opinion_file` and `fetch_statute_file` tools.
 - **Any source you supply yourself** — a Restatement section, a case that isn't in
   CourtListener, the opposing party's brief, a factual exhibit: any text-based file
   you drop into your working folder. Citation checking is **not** limited to
@@ -85,7 +85,7 @@ as possible:
 ## How to use it
 
 1. **Draft your document** — brief, motion, letter, memo — in any format.
-2. **Save the sources it cites.** Use `opinion_store` / `statute_store` for DingDuff
+2. **Save the sources it cites.** Use `fetch_opinion_file` / `fetch_statute_file` for DingDuff
    authorities; for anything else, drop a text copy into your working folder.
 3. **Ask Claude to cite-check it** (e.g., *"cite-check this brief"*). Claude reads
    your draft, lines each citation up with its source, and runs the local verifier.

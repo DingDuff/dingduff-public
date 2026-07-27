@@ -51,7 +51,7 @@ than **Blocked**.
 
 ## Code execution & network access (for downloads and citation-check)
 
-DingDuff's `opinion_store` / `statute_store` tools and the citation-check skill
+DingDuff's `fetch_opinion_file` / `fetch_statute_file` tools and the citation-check skill
 need Claude's **code-execution environment with internet access** (see
 [Browser Setup](Browser-Setup) for what this is). On Team/Enterprise plans this
 is often controlled centrally. If downloads fail, ask your admin:

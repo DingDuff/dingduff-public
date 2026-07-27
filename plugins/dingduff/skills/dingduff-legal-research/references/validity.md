@@ -12,7 +12,7 @@ For every case you intend to rely on:
    ```
 2. Scan for **treatment signals**: "abrogated," "overruled," "is no longer good law," "rejected," "declined to follow," "limited to its facts," "called into doubt," "superseded by statute." Treat any as a red flag.
 3. Cross-check with a direct search: `opinion_search` for `"<case name>" AND (overruled OR abrogated OR "no longer good law")`.
-4. If you find adverse treatment, retrieve the treating case via `opinion_store`, read it, and determine the **scope** — full overruling, partial abrogation, narrowing, or mere distinguishing.
+4. If you find adverse treatment, retrieve the treating case via `fetch_opinion_file`, read it, and determine the **scope** — full overruling, partial abrogation, narrowing, or mere distinguishing.
 5. For foundational SCOTUS or controlling appellate cases, check at least the ~20 most recent citing cases.
 
 If a case has been overruled or substantially abrogated, **do not present it as good law** — note the treatment, explain the current rule, and cite the case that did the overruling. A non-controlling or overruled case presented as authority is the worst failure mode in legal research.

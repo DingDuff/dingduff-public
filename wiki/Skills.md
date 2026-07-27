@@ -20,13 +20,13 @@ your skill picker.
 
 ### Legal research
 
-- **`dingduff-legal-research`** (v2.3) — one skill for legal research generally:
+- **`dingduff-legal-research`** (v2.4) — one skill for legal research generally:
   it finds, retrieves, reads, and **validates** the controlling cases, statutes,
   and regulations, maps the citation network and the statutory landscape, and
   confirms everything is still good law. Thorough by default, and scales from a
   quick "what's the law on X" to a full doctrinal map. (Replaces the older
   separate case-law standard/deep and statute-research skills.)
-  Download: [`dingduff_legal-research_v2.3.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-research_v2.3.skill)
+  Download: [`dingduff_legal-research_v2.4.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-research_v2.4.skill)
 
 ### Legal analysis
 
@@ -41,16 +41,16 @@ your skill picker.
 
 ### Citation checking
 
-- **`dingduff-citation-check`** (v2.5.7) — after you draft a memo (Markdown, **Word, or
+- **`dingduff-citation-check`** (v2.5.8) — after you draft a memo (Markdown, **Word, or
   Google Docs**), verifies every citation against the opinion and statute files
   you saved **plus any other source you supply** — a Restatement section, a case
   missing from CourtListener, the other side's brief, a factual PDF — quality-checks
   that each highlighted passage is the on-point part of the source, and opens a
   review panel showing the memo and each source side by side. Runs entirely in
   your own session.
-  Download: [`dingduff_citation-check_v2.5.7.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_citation-check_v2.5.7.skill)
+  Download: [`dingduff_citation-check_v2.5.8.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_citation-check_v2.5.8.skill)
   Needs `python3` (Cowork and Claude Code provide it). Save case/statute sources
-  first via `opinion_store` / `statute_store`; drop any other source (text or a
+  first via `fetch_opinion_file` / `fetch_statute_file`; drop any other source (text or a
   text-layer PDF) into your working folder.
   How it works — reliability & privacy: see [How Citation Checking Works](Citation-Checking).
 

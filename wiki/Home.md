@@ -23,7 +23,7 @@ Do this:
      match the symptom.
    - They want the optional skills and best-practice settings → read [Skills & Settings](Skills).
    - On a locked-down account where they CAN'T enable Claude's code execution /
-     network egress (so `opinion_store` can't save files) → point them to the
+     network egress (so `fetch_opinion_file` can't save files) → point them to the
      "BYOK / API key (Legacy)" section below.
 5. The connector URL the user must paste is exactly: https://app.dingduff.com/mcp
 
@@ -131,7 +131,7 @@ If yes, the connector is working. Now try a real query, e.g.:
 (read on).**
 
 DingDuff works best when Claude can **save the full text of a case or statute to
-your working folder** with `opinion_store` / `statute_store` and read the actual
+your working folder** with `fetch_opinion_file` / `fetch_statute_file` and read the actual
 source. That needs Claude's **code-execution environment with network access**
 turned on (Settings → Capabilities → *Code execution and file creation* +
 *Allow network egress*; the desktop **Cowork** app already has it — see
@@ -149,7 +149,7 @@ Claude **focused excerpts** of the relevant material, so it can read what matter
 **Which one applies to you?**
 
 - **You can change Claude's settings** (most Pro/Max users; Cowork desktop) → turn
-  on code execution + network egress and use `opinion_store` / `statute_store`.
+  on code execution + network egress and use `fetch_opinion_file` / `fetch_statute_file`.
   Better results, no key needed. **Skip BYOK.**
 - **You can't change those settings** (locked-down work account) → set up BYOK:
   1. Get an Anthropic API key from the **Claude Console** (console.anthropic.com)
@@ -186,7 +186,7 @@ You can add the DingDuff connector on the **Claude mobile apps** the same way
 (searching and viewing cases, statutes, and PACER) work fine.
 
 However, the features that need a working file environment — **saving sources**
-(`opinion_store` / `statute_store`) and the **citation-check** skill — rely on the
+(`fetch_opinion_file` / `fetch_statute_file`) and the **citation-check** skill — rely on the
 desktop app or browser. For full functionality, use the **desktop app (Cowork)**
 or a **browser**; treat mobile as read-and-research on the go.
 

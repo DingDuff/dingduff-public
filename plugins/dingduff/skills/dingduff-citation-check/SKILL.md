@@ -1,6 +1,6 @@
 ---
 name: dingduff-citation-check
-description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html that can display supplied PDF/Word sources in native format with the verified highlights overlaid) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.5.7)
+description: Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html that can display supplied PDF/Word sources in native format with the verified highlights overlaid) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.5.8)
 ---
 
 # Cite-Check: verify a memo's citations against stored sources
@@ -66,7 +66,7 @@ If multiple memo candidates exist, ask the user which to check.
 ## Step 2 — Inventory the stored sources
 
 Convention: source files live in `sources/` under the project root, saved
-there from `opinion_store`/`statute_store` download URLs. (Going forward,
+there from `fetch_opinion_file`/`fetch_statute_file` download URLs. (Going forward,
 always save those downloads into `sources/`.)
 
 Also search the rest of the working folder for strays:
@@ -81,7 +81,7 @@ Build the sources map:
   line), with `type, path, cluster_id, case_name, citation`.
 - Statutes: key `stat-{filename stem}`, with `type, path, statute_id, code,
   section, jurisdiction`. `statute_id` is the `[jurisdiction]/[code]/[section]`
-  identifier used with statute_store (e.g. `TX/property/92.006`,
+  identifier used with fetch_statute_file (e.g. `TX/property/92.006`,
   `US/18-usc/1001`) — reconstruct it from the file's metadata block. The
   review panel needs it to re-fetch the statute, so get it right.
 
@@ -186,7 +186,7 @@ Hard rules for quotes:
 ## Step 4 — Missing sources
 
 If a cited authority has no stored file, first attempt to fetch from DingDuff
-(opinion_store / statute_store → save into `sources/`). If you cannot locate
+(fetch_opinion_file / fetch_statute_file → save into `sources/`). If you cannot locate
 the source, tell the user and still include the citation, with a source entry
 of `{"type": "opinion"|"statute", "missing": true, "case_name"/"citation": ...}`
 so it is tracked as unverifiable rather than silently dropped.
