@@ -47,6 +47,7 @@ it** and ask Claude to walk you through everything. The easiest path:
 ## Pages in this wiki
 
 - **Install DingDuff** (this page) — the main setup, start to finish.
+- [DingDuff with ChatGPT (beta)](ChatGPT) — how to connect DingDuff to ChatGPT instead of Claude (in beta; Claude is the primary, fully-supported experience).
 - [Browser Setup](Browser-Setup) — extra steps if you use Claude in a web browser instead of the desktop app.
 - [Team & Enterprise](Team-and-Enterprise) — what to do if you're on a work plan and can't add the connector.
 - [Troubleshooting](Troubleshooting) — fixes for common problems (a tool isn't working, you can't sign in, etc.).
