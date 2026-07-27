@@ -7,13 +7,13 @@ description: Research the law on a question — find, retrieve, read, and valida
 
 One skill for finding and verifying legal authority — case law, statutes, and regulations. It produces a reliable, citation-anchored body of authority you can build an analysis or a document on, having personally confirmed it is still good law. Research here is **thorough by default**: assume the user wants the full picture, not a single snippet. Keep this file in context; pull in a `references/` file for the method you need.
 
-This skill runs on the DingDuff research tools (CourtListener + code databases): `opinion_search`, `courtlistener_full_search`, `opinion_store`, `opinion_view`, `show_citing_opinions`, `show_related_opinions` for cases; `codes_browse`, `codes_search`, `codes_view`, `metadata_view` for statutes/regulations.
+This skill runs on the DingDuff research tools (CourtListener + code databases): `opinion_search`, `courtlistener_full_search`, `fetch_opinion_file`, `opinion_view`, `show_citing_opinions`, `show_related_opinions` for cases; `codes_browse`, `codes_search`, `codes_view`, `metadata_view` for statutes/regulations.
 
 ## CRITICAL: Retrieve before you assert (anti-hallucination)
 
 **Never** state a holding, quote any language, or recite statutory text from a search snippet. Snippets only help you decide what to retrieve — they are not citable substance.
 
-- Cases: retrieve the actual opinion via `opinion_store` (preferred — saves a local copy) or `opinion_view`, then cite by reporter citation + pinpoint page (*Miranda v. Arizona*, 384 U.S. 436, 444 (1966)). Cluster IDs are internal retrieval handles — keep them in your notes, never in user-facing citations.
+- Cases: retrieve the actual opinion via `fetch_opinion_file` (preferred — saves a local copy) or `opinion_view`, then cite by reporter citation + pinpoint page (*Miranda v. Arizona*, 384 U.S. 436, 444 (1966)). Cluster IDs are internal retrieval handles — keep them in your notes, never in user-facing citations.
 - Statutes: retrieve the full section via `codes_view`, then cite by proper statutory citation (Tex. Bus. Orgs. Code § 21.401(a); 18 U.S.C. § 1001(a)(2)). `statute_id` stays internal.
 - If you cannot retrieve a source's text, do not discuss its substance — note the gap and move on.
 

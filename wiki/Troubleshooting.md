@@ -18,8 +18,8 @@ apply to new sessions.
 
 ## Opinion/statute store tools don't work (no files appear)
 
-**Symptom:** You ask Claude to save cases or statutes with `opinion_store` or
-`statute_store`. The tool seems to run, but no files show up and Claude can't
+**Symptom:** You ask Claude to save cases or statutes with `fetch_opinion_file` or
+`fetch_statute_file`. The tool seems to run, but no files show up and Claude can't
 read them back.
 
 **Cause:** These tools return **time-limited download links**. Claude has to fetch
@@ -115,7 +115,7 @@ again. If it keeps happening immediately, remove and re-add the connector.
 **Symptom:** `dingduff-citation-check` errors, can't find sources, or can't run.
 
 **Cause:** It needs (a) `python3` available in the session and (b) your source
-files saved locally first via `opinion_store` / `statute_store`.
+files saved locally first via `fetch_opinion_file` / `fetch_statute_file`.
 
 **Fix:**
 - Use **Cowork (desktop)** or **Claude Code**, which provide `python3`. In a plain

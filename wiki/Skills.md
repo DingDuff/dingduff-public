@@ -50,7 +50,7 @@ your skill picker.
   your own session.
   Download: [`dingduff_citation-check_v2.5.7.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_citation-check_v2.5.7.skill)
   Needs `python3` (Cowork and Claude Code provide it). Save case/statute sources
-  first via `opinion_store` / `statute_store`; drop any other source (text or a
+  first via `fetch_opinion_file` / `fetch_statute_file`; drop any other source (text or a
   text-layer PDF) into your working folder.
   How it works — reliability & privacy: see [How Citation Checking Works](Citation-Checking).
 

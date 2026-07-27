@@ -4,7 +4,7 @@ This page is for users running Claude in a web browser (claude.ai / claude.com)
 instead of the desktop app. First make sure they completed the main install on
 the [Home](Home) page. The key extra requirement in a browser is enabling
 Claude's code-execution / sandbox ("virtual machine") capability with network
-access turned on — otherwise the opinion_store / statute_store tools and the
+access turned on — otherwise the fetch_opinion_file / fetch_statute_file tools and the
 cite-check skill cannot download or process files. If they can use the desktop
 app instead, recommend that; Cowork on desktop is the most reliable environment.
 -->
@@ -27,7 +27,7 @@ dockets) work in the browser with no extra setup. But two kinds of work need
 Claude to have a **sandboxed working environment** — sometimes described as
 Claude using a "virtual machine":
 
-- **Saving sources to files** — the `opinion_store` and `statute_store` tools
+- **Saving sources to files** — the `fetch_opinion_file` and `fetch_statute_file` tools
   hand Claude time-limited download links, and Claude needs a working environment
   (with internet access) to actually fetch and save those files.
 - **The citation-check skill** (`dingduff-citation-check`) — it runs a small
@@ -53,7 +53,7 @@ Claude using a "virtual machine":
 
 1. Start a fresh chat with DingDuff connected.
 2. Ask: *"Use DingDuff to find one Texas Supreme Court opinion on the economic
-   loss rule, then save it to a file with `opinion_store`."*
+   loss rule, then save it to a file with `fetch_opinion_file`."*
 3. If the file is created and Claude can read it back, the environment is set up
    correctly. If the tool "runs" but no file appears, see
    [Troubleshooting → Opinion/statute store tools don't work](Troubleshooting).
