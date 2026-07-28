@@ -63,7 +63,7 @@ your skill picker.
   accurately. Works on its own (no connector needed).
   It's a large skill, so Claude will usually run it in a subagent — that's
   expected and keeps your main chat fast.
-  Download: [`dingduff_legal-citation-format_v1.4.skill`](https://github.com/DingDuff/dingduff-plugins/blob/HEAD/dist/dingduff_legal-citation-format_v1.4.skill)
+  Download: [`dingduff_legal-citation-format_v1.4.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-citation-format_v1.4.skill)
 
 ## How to install a skill
 
@@ -75,9 +75,11 @@ how you use Claude:
 - **claude.ai (browser):** **Settings → Capabilities → Skills** → upload the file.
 - **Claude Code (CLI):** install the whole library at once as a plugin instead:
   ```
-  /plugin marketplace add DingDuff/dingduff-plugins
+  /plugin marketplace add DingDuff/dingduff-public
   /plugin install dingduff@dingduff
   ```
+  In the `/plugin` menu you can also turn on **auto-update** for the DingDuff
+  marketplace, so new skill versions arrive automatically.
 
 Once uploaded, the skill appears in the skill picker (the `/` menu). The research
 skills trigger automatically when you ask a legal question; to cite-check, draft a
