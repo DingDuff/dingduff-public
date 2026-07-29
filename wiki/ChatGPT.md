@@ -3,8 +3,10 @@ This is the ChatGPT connection page. DingDuff's primary, fully-supported platfor
 is Claude (see Home). ChatGPT support is in BETA. Keep this page consumer-facing:
 walk the user through turning on Developer mode and adding the connector. Do NOT
 explain the technical/auth internals. The connector URL for ChatGPT is exactly
-https://app.dingduff.com/mcp-chatgpt/ (note: different from the Claude URL, and it
-ends in /mcp-chatgpt/). Reassure the user that a "Disconnected" label is normal.
+https://app.dingduff.com/mcp-chatgpt/ (note the trailing /mcp-chatgpt/). ChatGPT is
+the one place a URL still gets pasted by hand — on Claude, DingDuff installs from
+the connectors directory instead. Reassure the user that a "Disconnected" label is
+normal.
 -->
 
 # DingDuff with ChatGPT (Beta)
