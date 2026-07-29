@@ -280,7 +280,7 @@ confirm this when you accept the [Terms of Service](https://dingduff.com/terms))
 
 ## Pricing
 
-**DingDuff is free while in beta.** Our running costs are low enough that we
+**DingDuff is free.** Our running costs are low enough that we
 support the project with a **tip jar** rather than subscriptions — if it saves you
 time and you'd like to help keep it free, there's a tip option at
 [dingduff.com](https://dingduff.com/#cost). No subscription, no per‑search

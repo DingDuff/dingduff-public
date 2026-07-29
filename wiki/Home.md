@@ -69,7 +69,7 @@ it** and ask Claude to walk you through everything. The easiest path:
 
 ## Before you start
 
-DingDuff itself is **free while in beta**. To use it you need two things:
+DingDuff itself is **free**. To use it you need two things:
 
 1. **A DingDuff login** — sign up at **https://dingduff.com** to create your
    account. This gives you the email + password you'll use when connecting.
