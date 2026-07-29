@@ -1,43 +1,58 @@
 <!--
 INSTRUCTIONS FOR CLAUDE
-This page is for users on a work Claude account (Team or Enterprise). The common
-blocker: on these plans only an organization Owner can add a custom connector,
-and a user's role must allow it. If the user can't add DingDuff or doesn't see
-"Add custom connector," help them identify whether it's an admin/org issue and
-give them exact wording to send their admin. Also covers org-level network/code
-settings that an admin may need to enable.
+This page is for users on a work Claude account (Team or Enterprise). DingDuff is
+in Claude's connectors directory, so there is no URL for an admin to paste — the
+admin just enables the DingDuff listing for the organization. The common blocker:
+the member's role doesn't allow enabling connectors, so the DingDuff card shows
+"Request" instead of an add button. Help them send the request and give their
+admin the exact steps. Also covers org-level network/code settings an admin may
+need to enable.
 -->
 
 # Team & Enterprise Plans
 
-On **Team** and **Enterprise** Claude plans, individuals usually **cannot add a
-custom connector themselves**. An organization **Owner** has to add DingDuff for
-the whole organization first; after that, each member connects to it individually.
+On **Team** and **Enterprise** Claude plans, connectors are often controlled by your
+organization. If your role doesn't allow enabling connectors, you can't add DingDuff
+yourself — an admin enables the DingDuff listing for the organization first, and
+then each member connects individually with their own DingDuff login.
 
 ## How to tell this is your situation
 
 Any of these usually means it's an admin/organization setting, not something you
 did wrong:
 
-- You open **Customize → Connectors → +** and there's **no "Add custom
-  connector"** option.
-- DingDuff doesn't appear in your connector list even though a colleague added it.
+- In the directory, the **DingDuff** card shows a **Request** button instead of a
+  **+** / **Connect** button.
+- DingDuff doesn't appear in the directory for you even though a colleague has it.
 - You see a message that the connector isn't available for your organization or
   your role.
 
-## What an Owner needs to do (send them this)
+## Ask for it with the Request button
 
-> Please add the DingDuff custom connector for our organization:
-> 1. Go to **Organization settings → Connectors**.
-> 2. Click **Add**, choose **Custom**, then **Web**.
-> 3. Enter this server URL: `https://app.dingduff.com/mcp`
-> 4. Click **Add**.
-> 5. Make sure my role is allowed to use custom connectors (not "Blocked").
+On a Team plan, clicking **Request** on the DingDuff card sends it to your
+organization's admins for review — the button then reads **Requested** while it's
+pending. Claude shows you the outcome the next time you open the directory.
 
-Once the Owner has done this, each member connects on their own:
+That's usually all you need to do. If you'd rather reach your admin directly, send
+them the steps below.
 
-1. **Customize → Connectors**.
-2. Find **DingDuff** in the list and click **Connect**.
+## What an admin needs to do (send them this)
+
+> Please enable the DingDuff connector for our organization:
+> 1. Go to **Admin Settings → Connectors** (claude.ai/admin-settings/connectors).
+> 2. Find **DingDuff** — it's in Claude's connectors directory, so there's no URL to
+>    enter. If I've already requested it, it's under **Requested by your team** at the
+>    top of the list; otherwise search the directory for it.
+> 3. Enable it for the organization.
+> 4. Make sure my role is allowed to use connectors (not "Blocked").
+>
+> DingDuff is a free legal-research connector; each of us signs in with our own
+> DingDuff account (dingduff.com), so there are no shared credentials.
+
+Once the admin has enabled it, each member connects on their own:
+
+1. Open **Customize → Connectors** (or **Settings → Connectors**).
+2. Find **DingDuff** and click **Connect**.
 3. Sign in with your **DingDuff** email and password (from dingduff.com).
 
 Then continue with [Install DingDuff → Step 3](Home) (allow the tools).
@@ -57,8 +72,8 @@ need Claude's **code-execution environment with internet access** (see
 is often controlled centrally. If downloads fail, ask your admin:
 
 > Please enable code execution / file creation and **allow network egress** for
-> our organization under **Organization settings → Capabilities**, so DingDuff
-> can download legal sources and run citation checks.
+> our organization under **Admin Settings → Capabilities**, so DingDuff can
+> download legal sources and run citation checks.
 
 Note: capability changes usually apply only to **new** chat sessions.
 

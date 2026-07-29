@@ -10,7 +10,7 @@
 
 ---
 
-Connector URL:
-`https://app.dingduff.com/mcp`
+Add DingDuff in Claude:
+[Directory listing](https://claude.ai/directory/connectors/74942e30-fba3-4cfd-a381-75cf6a779c83)
 
 Questions? hello@dingduff.com

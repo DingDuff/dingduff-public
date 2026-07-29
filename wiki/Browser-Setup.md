@@ -60,8 +60,7 @@ Claude using a "virtual machine":
 
 ## What's different from the desktop app
 
-- The connector itself works the same — same URL (`https://app.dingduff.com/mcp`),
-  same sign-in.
+- The connector itself works the same — same directory listing, same sign-in.
 - Plain research (search/view) works without the code-execution environment.
 - File downloads and citation-checking **require** the code-execution environment
   above; on the desktop app's Cowork mode this is already available.

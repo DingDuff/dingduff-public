@@ -6,6 +6,10 @@ are: (1) the opinion/statute store tools "not working" because network egress /
 the code-execution environment is off, and (2) Team/Enterprise users who can't
 add the connector because an admin must enable it. Confirm the fix worked before
 moving on.
+
+DingDuff installs from Claude's connectors directory (search "DingDuff" and click
+add) — there is no URL to paste, so don't send users hunting for a "custom
+connector" dialog or ask them to re-check a server URL.
 -->
 
 # Troubleshooting
@@ -48,35 +52,40 @@ download silently fails.
 
 ---
 
-## You can't find "Add custom connector"
+## You can't add DingDuff from the directory
 
-**Symptom:** Under **Customize → Connectors → +**, there's no "Add custom
-connector" option, or DingDuff never shows up.
+**Symptom:** You search the directory for DingDuff and there's no add button — or
+the card shows **Request**, or DingDuff doesn't appear at all.
 
-**Cause:** Either you're on a **Team/Enterprise** plan where only an Owner can add
-connectors, or (on **Free**) you've hit the one-custom-connector limit.
+**Cause:** You're on a **Team/Enterprise** plan where your organization controls
+connectors, or you're searching the wrong tab of the directory.
 
 **Fix:**
-- **Team/Enterprise:** an Owner must add DingDuff first. See
-  [Team & Enterprise](Team-and-Enterprise) for the exact steps to send them.
-- **Free plan:** Free accounts allow only **one** custom connector. Remove an
-  existing one, or upgrade to Pro/Max for more.
+- Make sure **Connectors** is selected in the directory's left sidebar (it also
+  lists Skills and Plugins, and the search only shows the selected kind).
+- Try the listing link directly:
+  **https://claude.ai/directory/connectors/74942e30-fba3-4cfd-a381-75cf6a779c83**
+- **Card shows "Request":** click it — that sends DingDuff to your admins for
+  approval. See [Team & Enterprise](Team-and-Enterprise).
+- **Team/Enterprise, nothing appears:** an admin must enable it for the
+  organization. [Team & Enterprise](Team-and-Enterprise) has the exact steps to
+  send them.
 
 ---
 
 ## The sign-in window doesn't open (OAuth/login)
 
-**Symptom:** After clicking **Add**, no DingDuff sign-in page appears, or sign-in
+**Symptom:** After adding DingDuff, no DingDuff sign-in page appears, or sign-in
 never completes.
 
 **Cause:** A popup blocker or privacy extension is blocking the login window, or
 you don't yet have a DingDuff account.
 
 **Fix:**
-- Make sure you created a DingDuff account at **https://dingduff.com** first.
+- Make sure you created a DingDuff account at **https://dingduff.com** first —
+  connecting asks for that email and password.
 - Allow popups for Claude, and disable ad/privacy blockers for the sign-in.
 - Try a different browser, then re-add the connector.
-- Double-check the URL is exactly `https://app.dingduff.com/mcp`.
 
 ---
 
