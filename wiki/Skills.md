@@ -10,18 +10,48 @@ trigger on their own once installed.
 # Skills & Recommended Settings
 
 DingDuff works on its own, but these skills make it noticeably better. None are
-required. Each is a one-time download that you upload to Claude; it then stays in
-your skill picker.
+strictly required — though **`dingduff-legal-research`** is one we'd strongly
+recommend; see below.
 
-> Skill files are named `dingduff_<skill>_v1.0.skill`. In Claude's skill picker
-> they appear under their `dingduff-…` name.
+**The easiest way to get them is our plugin**, which installs all four at once
+and keeps them current. Skip the file-by-file downloads unless you want to pick
+and choose.
+
+## Install the plugin (recommended)
+
+1. In Claude, open **Customize** → the **Plugins** tab.
+2. Under **Personal plugins**, click **+** → **Add marketplace** →
+   **Add from a repository**.
+3. Enter `DingDuff/dingduff-public`.
+4. Click **Install** on the **DingDuff** plugin.
+
+Plugins work in **Cowork**, the **desktop app**, and **claude.ai in a browser**.
+When we ship a new version of a skill it arrives through the marketplace, so you
+don't have to come back and re-download four files.
+
+In **Claude Code**, do the same thing from the CLI:
+
+```
+/plugin marketplace add DingDuff/dingduff-public
+/plugin install dingduff@dingduff
+```
+
+The `/plugin` menu there also has an **auto-update** toggle for the DingDuff
+marketplace.
+
+> Prefer to install skills one at a time? Each skill below has a direct download,
+> and ["Install a single skill by hand"](#install-a-single-skill-by-hand) covers
+> where to upload it.
 
 ## The skills
 
 ### Legal research
 
-- **`dingduff-legal-research`** (v2.4) — one skill for legal research generally:
-  it finds, retrieves, reads, and **validates** the controlling cases, statutes,
+- **`dingduff-legal-research`** (v2.4) — **strongly recommended.** DingDuff works
+  without it, but it works a lot better with it: this skill carries the research
+  method and the bulk of our anti-hallucination instructions, which can't be
+  delivered through the connector itself. If you install only one, install this
+  one. It's one skill for legal research generally: it finds, retrieves, reads, and **validates** the controlling cases, statutes,
   and regulations, maps the citation network and the statutory landscape, and
   confirms everything is still good law. Thorough by default, and scales from a
   quick "what's the law on X" to a full doctrinal map. (Replaces the older
@@ -65,21 +95,22 @@ your skill picker.
   expected and keeps your main chat fast.
   Download: [`dingduff_legal-citation-format_v1.4.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-citation-format_v1.4.skill)
 
-## How to install a skill
+## Install a single skill by hand
 
-Download the `.skill` file(s) above (on GitHub, open the file and use the
-**Download raw file** button), then upload to Claude — pick the row that matches
-how you use Claude:
+The plugin above is the easier path and covers all four skills. If you'd rather
+install just one, download its `.skill` file (on GitHub, open the file and use the
+**Download raw file** button), then upload it to Claude — pick the row that
+matches how you use Claude:
 
 - **Cowork (desktop):** **Customize** (upper right) → **Skills** → upload the file.
 - **claude.ai (browser):** **Settings → Capabilities → Skills** → upload the file.
-- **Claude Code (CLI):** install the whole library at once as a plugin instead:
-  ```
-  /plugin marketplace add DingDuff/dingduff-public
-  /plugin install dingduff@dingduff
-  ```
-  In the `/plugin` menu you can also turn on **auto-update** for the DingDuff
-  marketplace, so new skill versions arrive automatically.
+- **Claude Code (CLI):** use the plugin instead — see above.
+
+Skills installed this way don't update themselves; you'd re-download the file when
+we ship a new version. That's the main reason we point people at the plugin.
+
+> Skill files are named `dingduff_<skill>_vX.Y.skill`. In Claude's skill picker
+> they appear under their `dingduff-…` name.
 
 Once uploaded, the skill appears in the skill picker (the `/` menu). The research
 skills trigger automatically when you ask a legal question; to cite-check, draft a
