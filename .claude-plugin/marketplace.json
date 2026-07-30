@@ -4,6 +4,9 @@
     "name": "DingDuff",
     "url": "https://dingduff.com"
   },
+  "metadata": {
+    "description": "Legal research skills for lawyers using Claude, from the makers of the DingDuff legal-research connector. Built by practicing attorneys for their own daily work."
+  },
   "plugins": [
     {
       "name": "dingduff",
