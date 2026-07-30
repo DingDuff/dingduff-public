@@ -27,7 +27,7 @@ pick and choose.
 
 Plugins work in **Cowork**, the **desktop app**, and **claude.ai in a browser**.
 When we ship a new version of a skill it arrives through the marketplace, so you
-don't have to come back and re-download four files.
+don't have to come back and re-download each file yourself.
 
 In **Claude Code**, do the same thing from the CLI:
 
