@@ -13,9 +13,9 @@ DingDuff works on its own, but these skills make it noticeably better. None are
 strictly required — though **`dingduff-legal-research`** is one we'd strongly
 recommend; see below.
 
-**The easiest way to get them is our plugin**, which installs all four at once
-and keeps them current. Skip the file-by-file downloads unless you want to pick
-and choose.
+**The easiest way to get them is our plugin**, which installs all our skills at
+once and keeps them current. Skip the file-by-file downloads unless you want to
+pick and choose.
 
 ## Install the plugin (recommended)
 
@@ -97,7 +97,7 @@ marketplace.
 
 ## Install a single skill by hand
 
-The plugin above is the easier path and covers all four skills. If you'd rather
+The plugin above is the easier path and covers every skill. If you'd rather
 install just one, download its `.skill` file (on GitHub, open the file and use the
 **Download raw file** button), then upload it to Claude — pick the row that
 matches how you use Claude:
