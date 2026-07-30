@@ -182,12 +182,16 @@ downloading anything and without flooding the chat** with full opinions.
 These take a few minutes and noticeably improve results. Full details on
 [Skills & Settings](Skills):
 
-- **Install the `dingduff-legal-research` skill** — it improves the quality and
-  depth of research answers.
-- **Install the `dingduff-legal-analysis` skill** — the reasoning step that
-  frames the issues and organizes the proof from a research answer.
-- **Install the `dingduff-citation-check` skill** — verifies every citation in a
-  drafted memo against the stored sources.
+- **Install our skills via the DingDuff plugin** — **Customize → Plugins →**
+  under *Personal plugins* **+ → Add marketplace → Add from a repository →**
+  `DingDuff/dingduff-public`, then **Install**. That's all four skills at once,
+  and new versions arrive through the marketplace instead of you re-downloading
+  files.
+  - Of the four, **`dingduff-legal-research` is strongly recommended** — DingDuff
+    works without it, but noticeably better with it, because that skill carries
+    the research method and most of our anti-hallucination instructions. The
+    other three (legal analysis, citation check, citation formatting) are
+    genuinely optional.
 - **Add a custom instruction** (Profile → *Instructions for Claude*) telling
   Claude to always use DingDuff for legal research, so you don't have to ask each
   time.
