@@ -22,7 +22,7 @@ pick and choose.
 1. In Claude, open **Customize** → the **Plugins** tab.
 2. Under **Personal plugins**, click **+** → **Add marketplace** →
    **Add from a repository**.
-3. Enter `DingDuff/dingduff-public`.
+3. Enter `https://github.com/DingDuff/dingduff-public`.
 4. Click **Install** on the **DingDuff** plugin.
 
 Plugins work in **Cowork**, the **desktop app**, and **claude.ai in a browser**.
