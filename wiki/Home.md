@@ -184,7 +184,7 @@ These take a few minutes and noticeably improve results. Full details on
 
 - **Install our skills via the DingDuff plugin** — **Customize → Plugins →**
   under *Personal plugins* **+ → Add marketplace → Add from a repository →**
-  `DingDuff/dingduff-public`, then **Install**. That's all four skills at once,
+  `DingDuff/dingduff-public`, then **Install**. That's all our skills at once,
   and new versions arrive through the marketplace instead of you re-downloading
   files.
   - Of the four, **`dingduff-legal-research` is strongly recommended** — DingDuff
