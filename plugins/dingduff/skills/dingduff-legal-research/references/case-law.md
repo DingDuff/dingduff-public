@@ -58,7 +58,7 @@ Phases 2–4 are loops, not one-shots. Keep going until: new expansions return c
 5. **Supporting authority** — cases that reinforce, extend, or apply the rule informatively.
 6. **Contrary / limiting authority** — adverse, distinguishable, narrowing, or critical cases. Engage honestly; this is what makes research trustworthy.
 7. **Trends and open questions** — splits, recent shifts, unresolved issues.
-8. **Validity confirmations** — brief notes on the overturn checks performed (show the work).
+8. **Validity confirmations** — brief notes on the checks performed (show the work), and **which tier each case received**: verified (heavyweight), screened (lightweight), or not validated. Close with one line on which cases you escalated and why. See `validity.md`.
 
 **Citation network diagram** (Mermaid): anchors at top, descendants flowing down, focus case marked (★/bold), adverse edges labeled (`-->|abrogated by|`), short cite + year on each node. Split by sub-doctrine if too large.
 
@@ -66,9 +66,10 @@ Phases 2–4 are loops, not one-shots. Keep going until: new expansions return c
 
 | Case Name & Citation | Cluster ID | Role | Validity | Key Quote(s) | Local File |
 |---|---|---|---|---|---|
-| *Brown v. Board of Educ.*, 347 U.S. 483 (1954) | 107252 | Anchor | Good law | "Separate educational facilities are inherently unequal." *Id.* at 495. | `107252_brown_v_board_347_US_483.md` |
+| *Brown v. Board of Educ.*, 347 U.S. 483 (1954) | 107252 | Anchor | Verified (heavyweight) — VALID, high confidence | "Separate educational facilities are inherently unequal." *Id.* at 495. | `107252_brown_v_board_347_US_483.md` |
+| *Bolling v. Sharpe*, 347 U.S. 497 (1954) | 107253 | Supporting | Screened (lightweight) — no adverse signals | "Segregation in public education is not reasonably related to any proper governmental objective." *Id.* at 500. | `107253_bolling_v_sharpe_347_US_497.md` |
 
-Role = Anchor / Primary / Supporting / Contrary / Pruned-but-considered. Sort by role, then date.
+Role = Anchor / Primary / Supporting / Contrary / Pruned-but-considered. Sort by role, then date. **Validity** carries the tier, not just a conclusion — "Good law" on its own hides whether anyone checked.
 
 ## Tool quick reference
 

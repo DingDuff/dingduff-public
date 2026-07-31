@@ -130,7 +130,7 @@ To add a skill:
 
 1. **Download the skill file(s)** from the [Skills & Settings](Skills) page — on
    GitHub, open a `.skill` file and click **Download raw file**. The files are
-   named like `dingduff_legal-research_v2.4.skill`.
+   named `dingduff_<skill>_v<version>.skill`.
 2. A `.skill` file is just a **zipped folder**. If ChatGPT accepts the `.skill`
    directly, use it as-is; if it doesn't, **rename it to end in `.zip` and unzip
    it** to get the skill **folder** (the folder contains a `SKILL.md` file).
