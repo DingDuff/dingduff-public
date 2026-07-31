@@ -192,11 +192,21 @@ and use **Download raw file**), then upload it to Claude —
 
 - **Cowork (desktop):** **Customize** (upper‑right) → **Skills** → upload the file.
 - **claude.ai (browser):** **Settings → Capabilities → Skills** → upload the file.
-- **Claude Code (CLI):** install the whole library at once as a plugin:
+- **Claude Code (CLI):** install the whole library at once as a plugin — this
+  also sets up the connector for you, so it's the only step you need:
   ```
   /plugin marketplace add DingDuff/dingduff-public
   /plugin install dingduff@dingduff
+  /mcp
   ```
+  The plugin bundles the DingDuff connector alongside the skills. Run `/mcp`,
+  pick `dingduff`, and sign in through your browser. See
+  [SETUP.md](plugins/dingduff/SETUP.md) for the full walkthrough.
+
+  **Already added DingDuff as a custom connector?** The plugin registers it
+  too, so you'll have the same server listed twice — harmless, but it doubles
+  the tool list. Remove your older manual entry with `claude mcp remove <name>`
+  and keep the plugin's.
 
 Skill files are named `dingduff_<skill>_vX.Y.skill`; in Claude's picker they
 appear under their `dingduff-…` name. To update, re‑download and re‑upload (or
@@ -212,7 +222,9 @@ You need two things:
    plan works but allows only one custom connector.)
 2. **A DingDuff login.** Sign up at **[dingduff.com](https://dingduff.com)** —
    this is the email and password you'll use to connect. DingDuff is for licensed
-   attorneys, per the [Terms of Service](https://dingduff.com/terms).
+   attorneys, per the [Terms of Service](https://dingduff.com/terms). What the
+   service collects and retains is set out in the
+   [Privacy Policy](https://dingduff.com/privacy).
 
 Then follow the **[installation wiki](https://github.com/DingDuff/dingduff-public/wiki)**.
 The short version: add a custom connector in Claude pointing at
@@ -245,7 +257,9 @@ for the file.
   sends nothing. The interactive panel passes your document through DingDuff only
   as the arguments needed to draw it, never stored or logged — and there's a
   standalone `review.html` if you'd rather nothing transit at all. DingDuff keeps
-  no copy of your draft or your verdicts.
+  no copy of your draft or your verdicts. The
+  [Privacy Policy](https://dingduff.com/privacy) covers what the connector does
+  log and how long it's kept.
 
 It checks against authorities you saved from DingDuff **and any source you supply
 yourself** — a Restatement section, a case that isn't in CourtListener, the other
@@ -331,7 +345,7 @@ This project would not be possible without the data heroes at
 
 ---
 
-**Links:** [dingduff.com](https://dingduff.com) · [Installation & help wiki](https://github.com/DingDuff/dingduff-public/wiki) · [Demo video](https://youtu.be/1ts9kdMKjJg) · [Terms of Service](https://dingduff.com/terms) · [Skills License](LICENSE.md) · Questions? [hello@dingduff.com](mailto:hello@dingduff.com)
+**Links:** [dingduff.com](https://dingduff.com) · [Installation & help wiki](https://github.com/DingDuff/dingduff-public/wiki) · [Demo video](https://youtu.be/1ts9kdMKjJg) · [Terms of Service](https://dingduff.com/terms) · [Privacy Policy](https://dingduff.com/privacy) · [Skills License](LICENSE.md) · Questions? [hello@dingduff.com](mailto:hello@dingduff.com)
 
 *Skills in this repository are developed in the DingDuff MCP server and vendored
 here for distribution; each `dist/dingduff_<skill>_vX.Y.skill` is a packaged copy
