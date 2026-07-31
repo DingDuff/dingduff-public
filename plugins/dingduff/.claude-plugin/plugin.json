@@ -5,6 +5,15 @@
   "author": {
     "name": "DingDuff"
   },
+  "keywords": [
+    "legal",
+    "law",
+    "legal-research",
+    "case-law",
+    "statutes",
+    "citations",
+    "attorneys"
+  ],
   "homepage": "https://www.dingduff.com",
   "repository": "https://github.com/DingDuff/dingduff-public",
   "license": "DingDuff Skills License 1.0"
