@@ -1,6 +1,6 @@
 ---
 name: dingduff-legal-research
-description: Research the law on a question — find, retrieve, read, and validate the controlling cases, statutes, and regulations; map the citation network and the statutory landscape; and verify everything is still good law. Use for ANY legal-research task — "what's the law on X," "find cases/statutes on Y," "research precedent," "is this still good law," "map the statutory scheme," "what does § __ mean" — and as the authority-gathering step behind any analysis, memo, or brief. Research is thorough by default. It interleaves with dingduff-legal-analysis (analysis guides research; research guides analysis). Method detail for case law, statutes, and validity lives in references/ and is loaded as needed. (v2.4)
+description: Research the law on a question — find, retrieve, read, and validate the controlling cases, statutes, and regulations; map the citation network and the statutory landscape; and verify everything is still good law. Use for ANY legal-research task — "what's the law on X," "find cases/statutes on Y," "research precedent," "is this still good law," "map the statutory scheme," "what does § __ mean" — and as the authority-gathering step behind any analysis, memo, or brief. Research is thorough by default. It interleaves with dingduff-legal-analysis (analysis guides research; research guides analysis). Validates cases at two tiers — a cheap inline screen for everything, and the heavyweight dingduff-validity-check skill, delegated to a subagent, for the cases an argument actually rests on — and reports which tier each case received. Method detail for case law, statutes, and validity lives in references/ and is loaded as needed. (v2.5)
 license: "DingDuff Skills License 1.0 — LICENSE.md has complete terms"
 ---
 
@@ -20,7 +20,16 @@ This skill runs on the DingDuff research tools (CourtListener + code databases):
 
 ## CRITICAL: Verify it's still good law
 
-The databases do **not** flag overturned, abrogated, or limited cases, and do not guarantee real-time tracking of statutory amendments. You must check, yourself, for every authority you will rely on — overturn/treatment checks for cases, currency/amendment checks for statutes. This is the single discipline that separates real research from a snippet dump. Method in `references/validity.md`; do it before anything you find becomes part of an answer.
+The databases do **not** flag overturned, abrogated, or limited cases, and do not guarantee real-time tracking of statutory amendments. You must check, yourself, for every authority you will rely on — overturn/treatment checks for cases, currency/amendment checks for statutes. This is the single discipline that separates real research from a snippet dump. Do it before anything you find becomes part of an answer.
+
+Case validation has **two tiers**, and choosing between them per case is your judgment call:
+
+- **Lightweight** — a heuristic screen you run inline, a few tool calls per case. Cheap and fast. It catches the loud failures, but a clean screen is **not** evidence of validity. Right for background cites, redundant supports, and quick orientation.
+- **Heavyweight** — the `dingduff-validity-check` skill, delegated to a subagent. Answers whether the case is good law *for the specific proposition you're citing it for*, and states its own coverage limits. Slow and sequential, so spend it where it counts.
+
+**The test: does the answer change if this case is bad?** If yes, heavyweight — the anchor of a rule you assert, anything headed into a filing or client advice, adverse authority you're distinguishing, anything the screen flagged. Do not run heavyweight on every case in a network; screen broadly, escalate narrowly.
+
+**Then tell the user which cases got which tier.** A screened case and a verified case look identical in a finished answer, so the distinction only exists if you state it. Labels and the reporting convention are in `references/validity.md`, along with both procedures and the delegation contract.
 
 ## Research and analysis interleave (the recursive loop)
 
@@ -56,7 +65,7 @@ Naming: cases `<cluster_id>_<short_case_name>_<reporter_cite>.md` (e.g., `107252
 1. **Take the issues** — from `dingduff-legal-analysis`, or frame them lightly. Decide whether the question is statute-driven, case-law-driven, or both.
 2. **Statutes & regulations** (when a statutory or regulatory scheme governs) — map the code bidirectionally, pull definitions, flag phrases needing interpretation. → `references/statutes.md`
 3. **Case law** — search broadly, then map the citation network (back to the anchor, forward to current applications, plus a topical sweep). → `references/case-law.md`
-4. **Validate** everything you'll rely on — overturn checks for cases, currency for statutes. → `references/validity.md`
+4. **Validate** everything you'll rely on — lightweight screen on every case, heavyweight (delegated `dingduff-validity-check`) on the load-bearing ones, currency checks for statutes. Report the tier each case received. → `references/validity.md`
 5. **Interleave with analysis** (the loop above) — feed findings to `dingduff-legal-analysis`; return here for each new question it surfaces. Continue until saturated and gap-free.
 6. **Synthesize** — present the authority with its current-validity status. Output formats (doctrinal genealogy + network diagram + case table for cases; statutory tree + roadmap + section table for statutes) are in the domain references.
 
@@ -64,8 +73,8 @@ Naming: cases `<cluster_id>_<short_case_name>_<reporter_cite>.md` (e.g., `107252
 
 - `references/case-law.md` — finding cases (search strategies, tool patterns), mapping the citation network (ancestors / descendants / topical sweep), the working set, and the case-law output format (genealogy, network diagram, case table).
 - `references/statutes.md` — jurisdiction/scope check, bidirectional code mapping (top-down hierarchy + bottom-up keyword), definition discovery, flagging phrases that need interpretation, targeted interpreting case law, and the statutory output format (tree, roadmap, section table).
-- `references/validity.md` — the overturn problem and the case-validity check; statutory currency and amendment checks; the verification pass before any authority enters an answer.
+- `references/validity.md` — the two validation tiers and how to choose between them; the lightweight screen; the delegation contract for heavyweight `dingduff-validity-check`; statutory currency and amendment checks; the verification pass and how to report tiers to the user.
 
 ## Related skills
 
-Interleaves with `dingduff-legal-analysis` (the reasoning it feeds and takes direction from). QC: `dingduff-legal-citation-format`, `dingduff-citation-check`.
+Interleaves with `dingduff-legal-analysis` (the reasoning it feeds and takes direction from). Heavyweight validation is delegated to `dingduff-validity-check` — always in a subagent, never loaded here. QC: `dingduff-legal-citation-format`, `dingduff-citation-check`.

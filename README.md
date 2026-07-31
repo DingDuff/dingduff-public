@@ -175,17 +175,19 @@ lives in your skill picker and triggers automatically when relevant.
 
 | Skill | Version | What it does |
 |-------|:---:|--------------|
-| **Legal Research** — [`download`](dist/dingduff_legal-research_v2.4.skill) | v2.4 | End‑to‑end research: finds, retrieves, reads, and **validates** the controlling cases, statutes, and regulations; maps the citation network and statutory landscape; confirms everything is still good law. Scales from a quick "what's the law on X" to a full doctrinal map. |
+| **Legal Research** — [`download`](dist/dingduff_legal-research_v2.5.skill) | v2.5 | End‑to‑end research: finds, retrieves, reads, and **validates** the controlling cases, statutes, and regulations; maps the citation network and statutory landscape; confirms everything is still good law. Screens every case cheaply, escalates the ones your argument rests on to the full Validity Check, and **tells you which cases got which**. Scales from a quick "what's the law on X" to a full doctrinal map. |
 | **Legal Analysis** — [`download`](dist/dingduff_legal-analysis_v1.2.skill) | v1.2 | The reasoning engine: frames the issues, synthesizes the governing rule, analyzes the facts against it, organizes the proof (CRAC/CREAC), and deploys authority. Use before drafting anything. |
-| **Validity Check** — [`download`](dist/dingduff_validity-check_v3.4.skill) | v3.4 | Before an argument rests on a case, confirms it is still good law **for the proposition you're citing it for**: traces direct history, sweeps forward for overruling and erosion, checks the authorities the case itself leaned on, and looks for a rule that moved without anyone citing it. Returns a verdict with its confidence and its coverage limits. |
+| **Validity Check** — [`download`](dist/dingduff_validity-check_v3.4.skill) | v3.4 | Before an argument rests on a case, confirms it is still good law **for the proposition you're citing it for**: traces direct history, sweeps forward for overruling and erosion, checks the authorities the case itself leaned on, and looks for a rule that moved without anyone citing it. Returns a verdict with its confidence and its coverage limits. Legal Research calls it automatically on load‑bearing cases; you can also point it at one case yourself. |
 | **Citation Check** — [`download`](dist/dingduff_citation-check_v2.5.8.skill) | v2.5.8 | After you draft a memo (Markdown, Word, or Google Docs), verifies every citation against your stored sources plus anything else you supply, quality-checks each highlighted passage for substance, then opens an interactive attorney review panel and records your verdicts. |
 | **Legal Citation Format** — [`download`](dist/dingduff_legal-citation-format_v1.4.skill) | v1.4 | Formats citations the way courts expect — signals, pincites, short forms (*id.*/*supra*), string cites, block quotes. Follows *The Indigo Book*. Form only; works standalone (no connector needed). |
 
 The research and analysis skills are designed to work **together**: research
 gathers the authority, and analysis reasons through the question to build the
-proof. Validity Check pressure‑tests the cases the argument actually rests on;
-Citation Check then verifies your finished work product; Legal Citation Format
-polishes the cites.
+proof. Validity Check pressure‑tests the cases the argument actually rests on —
+Legal Research runs a cheap screen over everything it finds and hands only the
+load‑bearing cases to the full check, then reports which cases got which, so you
+can see where the confidence is earned. Citation Check then verifies your
+finished work product; Legal Citation Format polishes the cites.
 
 **Install a skill:** download the `.skill` file above (on GitHub, open the file
 and use **Download raw file**), then upload it to Claude —

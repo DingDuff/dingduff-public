@@ -47,7 +47,7 @@ marketplace.
 
 ### Legal research
 
-- **`dingduff-legal-research`** (v2.4) — **strongly recommended.** DingDuff works
+- **`dingduff-legal-research`** (v2.5) — **strongly recommended.** DingDuff works
   without it, but it works a lot better with it: this skill carries the research
   method and the bulk of our anti-hallucination instructions, which can't be
   delivered through the connector itself. If you install only one, install this
@@ -56,7 +56,14 @@ marketplace.
   confirms everything is still good law. Thorough by default, and scales from a
   quick "what's the law on X" to a full doctrinal map. (Replaces the older
   separate case-law standard/deep and statute-research skills.)
-  Download: [`dingduff_legal-research_v2.4.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-research_v2.4.skill)
+  Download: [`dingduff_legal-research_v2.5.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-research_v2.5.skill)
+  **Two-tier validation (new in v2.5):** every case gets a quick screen, and the
+  cases your argument actually rests on get handed to the full
+  [Validity Check](#case-validity) below. Claude decides which is which, weighing
+  how load-bearing the case is against the cost of the deep check — and it tells
+  you which cases got which. A quick screen is a smoke test, not a verification,
+  and the answer will say so rather than letting the two look alike. If you want
+  a particular case checked the hard way, just say so.
 
 ### Legal analysis
 
@@ -85,6 +92,9 @@ marketplace.
   Download: [`dingduff_validity-check_v3.4.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_validity-check_v3.4.skill)
   It's a heavy check, so Claude runs it in a subagent — that's expected and
   keeps your main chat fast. Needs the DingDuff connector.
+  **Install it alongside Legal Research**, which calls it automatically on the
+  load-bearing cases it finds. You can also point it at a single case yourself:
+  *"is* Smith v. Jones *still good law for the proposition that…?"*
 
 ### Citation checking
 
