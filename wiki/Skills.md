@@ -69,6 +69,23 @@ marketplace.
   `dingduff-legal-research`, which gathers the authority it reasons over.
   Download: [`dingduff_legal-analysis_v1.2.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-analysis_v1.2.skill)
 
+### Case validity
+
+- **`dingduff-validity-check`** (v3.4) — before an argument rests on a case,
+  confirms the case is still good law **for the proposition you're citing it
+  for** (a case gutted on one holding can be untouched on another). It traces
+  the case's own appellate history, sweeps forward for opinions that overruled,
+  limited, or questioned it, checks the authorities the case itself leaned on in
+  case one of *those* was later undercut, and looks for a rule that moved
+  without any court citing the case at all. You get back a short verdict — valid,
+  narrowed, at risk, invalid — with its confidence, what replaces the case if
+  it's unusable, and an explicit statement of what the check could **not** see.
+  Use it on the cases an argument actually rests on, on any case an opponent
+  hands you, and whenever a cite-check flags an authority.
+  Download: [`dingduff_validity-check_v3.4.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_validity-check_v3.4.skill)
+  It's a heavy check, so Claude runs it in a subagent — that's expected and
+  keeps your main chat fast. Needs the DingDuff connector.
+
 ### Citation checking
 
 - **`dingduff-citation-check`** (v2.5.8) — after you draft a memo (Markdown, **Word, or
@@ -111,6 +128,26 @@ we ship a new version. That's the main reason we point people at the plugin.
 
 > Skill files are named `dingduff_<skill>_vX.Y.skill`. In Claude's skill picker
 > they appear under their `dingduff-…` name.
+
+## License
+
+The skills are free, and free to use in your paid work — your firm, your
+clients, your billable matters, no restriction and nothing owed. You can change
+them to suit your jurisdiction or your house style, and whatever you produce
+with them is entirely yours.
+
+The conditions apply only if you **pass a skill on to someone else**: do it
+noncommercially, keep the license and notices with the copy, credit DingDuff,
+say plainly if you modified it, and pass the same terms along.
+
+Full terms: **[DingDuff Skills License 1.0](https://www.dingduff.com/skills-license/1.0)**.
+A copy also ships inside every `.skill` file as `LICENSE.md`. The connector and
+service itself are covered separately by the
+[Terms of Service](https://www.dingduff.com/terms).
+
+These skills instruct an AI model, and an AI model can be wrong. They come with
+no warranty — verify every authority, quotation, and conclusion before you rely
+on it.
 
 Once uploaded, the skill appears in the skill picker (the `/` menu). The research
 skills trigger automatically when you ask a legal question; to cite-check, draft a

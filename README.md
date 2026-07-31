@@ -36,6 +36,7 @@ with authority you can click through and verify.
 - [Who it's for](#who-its-for)
 - [What lawyers are saying](#what-lawyers-are-saying)
 - [Pricing](#pricing)
+- [License](#license)
 - [Who's behind it](#whos-behind-it)
 
 ---
@@ -176,13 +177,15 @@ lives in your skill picker and triggers automatically when relevant.
 |-------|:---:|--------------|
 | **Legal Research** — [`download`](dist/dingduff_legal-research_v2.4.skill) | v2.4 | End‑to‑end research: finds, retrieves, reads, and **validates** the controlling cases, statutes, and regulations; maps the citation network and statutory landscape; confirms everything is still good law. Scales from a quick "what's the law on X" to a full doctrinal map. |
 | **Legal Analysis** — [`download`](dist/dingduff_legal-analysis_v1.2.skill) | v1.2 | The reasoning engine: frames the issues, synthesizes the governing rule, analyzes the facts against it, organizes the proof (CRAC/CREAC), and deploys authority. Use before drafting anything. |
+| **Validity Check** — [`download`](dist/dingduff_validity-check_v3.4.skill) | v3.4 | Before an argument rests on a case, confirms it is still good law **for the proposition you're citing it for**: traces direct history, sweeps forward for overruling and erosion, checks the authorities the case itself leaned on, and looks for a rule that moved without anyone citing it. Returns a verdict with its confidence and its coverage limits. |
 | **Citation Check** — [`download`](dist/dingduff_citation-check_v2.5.8.skill) | v2.5.8 | After you draft a memo (Markdown, Word, or Google Docs), verifies every citation against your stored sources plus anything else you supply, quality-checks each highlighted passage for substance, then opens an interactive attorney review panel and records your verdicts. |
 | **Legal Citation Format** — [`download`](dist/dingduff_legal-citation-format_v1.4.skill) | v1.4 | Formats citations the way courts expect — signals, pincites, short forms (*id.*/*supra*), string cites, block quotes. Follows *The Indigo Book*. Form only; works standalone (no connector needed). |
 
 The research and analysis skills are designed to work **together**: research
 gathers the authority, and analysis reasons through the question to build the
-proof. Citation Check then verifies your finished work product; Legal Citation
-Format polishes the cites.
+proof. Validity Check pressure‑tests the cases the argument actually rests on;
+Citation Check then verifies your finished work product; Legal Citation Format
+polishes the cites.
 
 **Install a skill:** download the `.skill` file above (on GitHub, open the file
 and use **Download raw file**), then upload it to Claude —
@@ -286,6 +289,32 @@ time and you'd like to help keep it free, there's a tip option at
 [dingduff.com](https://dingduff.com/#cost). No subscription, no per‑search
 billing.
 
+## License
+
+The skills in this repository are released under the **[DingDuff Skills License
+1.0](LICENSE.md)** (also at
+[dingduff.com/skills-license/1.0](https://www.dingduff.com/skills-license/1.0)).
+The short version:
+
+- **Use them however you like, including in paid work.** Your firm, your
+  clients, your billable matters — no restriction and nothing owed. The
+  noncommercial limit applies only to *passing the skills on to other people*,
+  never to your own use of them.
+- **Change them freely.** Adapt a skill to your jurisdiction, your practice
+  area, or your house style. You can keep your version to yourself.
+- **What you produce is yours.** We claim no rights in your memos, briefs,
+  letters, or research, and require no attribution in them.
+- **If you redistribute**, do it noncommercially, keep the license and notices
+  with the copy, credit DingDuff, say plainly if you changed it, and pass these
+  same terms along.
+- **No warranty, and the lawyer is still the lawyer.** The skills instruct an AI
+  model, and an AI model can be wrong. Verify every authority, quotation, and
+  conclusion before you rely on it.
+
+That summary is not the license — [LICENSE.md](LICENSE.md) is. A copy of it
+ships inside every `.skill` file. The DingDuff connector and service are covered
+separately by the [Terms of Service](https://dingduff.com/terms).
+
 ## Who's behind it
 
 DingDuff started as a side project by two practicing lawyers — **Kyle Dingman**
@@ -302,8 +331,9 @@ This project would not be possible without the data heroes at
 
 ---
 
-**Links:** [dingduff.com](https://dingduff.com) · [Installation & help wiki](https://github.com/DingDuff/dingduff-public/wiki) · [Demo video](https://youtu.be/1ts9kdMKjJg) · [Terms of Service](https://dingduff.com/terms) · Questions? [hello@dingduff.com](mailto:hello@dingduff.com)
+**Links:** [dingduff.com](https://dingduff.com) · [Installation & help wiki](https://github.com/DingDuff/dingduff-public/wiki) · [Demo video](https://youtu.be/1ts9kdMKjJg) · [Terms of Service](https://dingduff.com/terms) · [Skills License](LICENSE.md) · Questions? [hello@dingduff.com](mailto:hello@dingduff.com)
 
 *Skills in this repository are developed in the DingDuff MCP server and vendored
 here for distribution; each `dist/dingduff_<skill>_vX.Y.skill` is a packaged copy
-of the matching `plugins/dingduff/skills/dingduff-<skill>/` folder.*
+of the matching `plugins/dingduff/skills/dingduff-<skill>/` folder, built by
+`scripts/build_dist.py`.*

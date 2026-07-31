@@ -15,6 +15,7 @@ description: >-
   it with primary-source verification (separate skill). NOTE: This skill and
   reference files are large, so run it in a subagent — delegate the formatting
   task rather than loading the full skill into the main context window. (v1.4)
+license: "DingDuff Skills License 1.0 — LICENSE.md has complete terms"
 ---
 
 # Legal Citation Format — Practitioner / Brief Style

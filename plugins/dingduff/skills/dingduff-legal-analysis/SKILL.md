@@ -1,6 +1,7 @@
 ---
 name: dingduff-legal-analysis
 description: Analyze a legal question rigorously and produce a citation-anchored analysis or proof skeleton — frame the issues, synthesize the governing rule, analyze the facts, organize the proof (CRAC/CREAC), and deploy authority. Use for ANY legal-reasoning task — "what's the law on X," "do we have a claim," "will this hold up," "analyze whether," "what are the issues," "how would we argue this" — and to build the analytical skeleton before drafting any memo, brief, or letter. Pairs with dingduff-legal-writing (which turns the analysis into a finished document) and the dingduff research and citation skills. Detailed method for each step lives in references/ and is loaded as needed. (v1.2)
+license: "DingDuff Skills License 1.0 — LICENSE.md has complete terms"
 ---
 
 # Legal Analysis
