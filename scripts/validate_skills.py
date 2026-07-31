@@ -11,8 +11,14 @@ Checks:
   2. Every dist/*.skill bundles a SKILL.md byte-identical to its source, so a
      source fix can't ship with a stale zip.
   3. The `(vX.Y.Z)` tag in each description matches the dist filename version.
+  4. Every skill carries the license: a `license` key in its frontmatter and a
+     LICENSE.md in its directory, and every bundle ships that LICENSE.md. The
+     DingDuff Skills License makes carrying the terms a condition of passing a
+     copy on, so a skill that ships without them is a skill nobody may
+     redistribute.
 
 Run locally with: python3 scripts/validate_skills.py
+To rebuild the bundles themselves: python3 scripts/build_dist.py
 """
 
 import glob
@@ -49,6 +55,21 @@ def parse_frontmatter(text, label, errors):
     return data
 
 
+def check_license(skill, path, data, errors):
+    """Every skill declares the license and bundles its text."""
+    if not data.get("license"):
+        errors.append(
+            f"{path}: frontmatter is missing `license` — every skill ships under "
+            f"the DingDuff Skills License"
+        )
+    license_path = os.path.join(os.path.dirname(path), "LICENSE.md")
+    if not os.path.exists(license_path):
+        errors.append(
+            f"{license_path}: missing — copy the repo-root LICENSE.md into the "
+            f"`{skill}` directory so the terms travel with the .skill file"
+        )
+
+
 def main():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(root)
@@ -69,6 +90,7 @@ def main():
             continue
         if data["name"] != skill:
             errors.append(f"{path}: name `{data['name']}` != directory `{skill}`")
+        check_license(skill, path, data, errors)
         sources[skill] = (raw, data, path)
 
     for archive in sorted(glob.glob("dist/*.skill")):
@@ -80,6 +102,8 @@ def main():
             name = packed[0]
             skill = name.split("/")[0]
             raw = zf.read(name)
+            if f"{skill}/LICENSE.md" not in zf.namelist():
+                errors.append(f"{archive}: bundles no LICENSE.md — rerun scripts/build_dist.py")
 
         if parse_frontmatter(raw.decode("utf-8"), f"{archive}::{name}", errors) is None:
             continue
