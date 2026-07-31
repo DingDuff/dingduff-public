@@ -11,7 +11,7 @@
     {
       "name": "dingduff",
       "source": "./plugins/dingduff",
-      "description": "DingDuff legal research & workflow skills for Claude: legal research (find, read, and validate cases, statutes, and regulations), legal analysis (frame issues, synthesize rules, structure proof), case validity checking (/dingduff:dingduff-validity-check) to confirm a case is still good law for the proposition it is cited for, citation verification (/dingduff:dingduff-citation-check) of Markdown, Word, or Google Docs memos against stored sources plus attorney-supplied documents, and practitioner-style citation formatting. The research and verification skills use the DingDuff MCP connector. Licensed under the DingDuff Skills License 1.0 (https://www.dingduff.com/skills-license/1.0)."
+      "description": "DingDuff legal research for Claude: bundles the DingDuff legal-research connector together with the skills that drive it — legal research (find, read, and validate cases, statutes, and regulations), legal analysis (frame issues, synthesize rules, structure proof), case validity checking (/dingduff:dingduff-validity-check) to confirm a case is still good law for the proposition it is cited for, citation verification (/dingduff:dingduff-citation-check) of Markdown, Word, or Google Docs memos against stored sources plus attorney-supplied documents, and practitioner-style citation formatting. Installing the plugin registers the connector; sign in through its browser OAuth flow on first use. Requires a free DingDuff account (licensed attorneys only). Privacy policy: https://dingduff.com/privacy. Licensed under the DingDuff Skills License 1.0 (https://www.dingduff.com/skills-license/1.0)."
     }
   ]
 }

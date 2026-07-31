@@ -1,7 +1,7 @@
 {
   "name": "dingduff",
-  "description": "Client-side legal research and workflow skills for DingDuff users: legal research (find, read, and validate cases, statutes, and regulations), legal analysis (frame issues, synthesize rules, structure proof), case validity checking (confirm a case is still good law for the proposition it is cited for), citation verification of Markdown/Word/Google Docs memos against stored sources plus attorney-supplied documents, and practitioner-style citation formatting.",
-  "version": "0.11.0",
+  "description": "Legal research for lawyers using Claude: bundles the DingDuff legal-research connector together with the skills that drive it — legal research (find, read, and validate cases, statutes, and regulations), legal analysis (frame issues, synthesize rules, structure proof), case validity checking (confirm a case is still good law for the proposition it is cited for), citation verification of Markdown/Word/Google Docs memos against stored sources plus attorney-supplied documents, and practitioner-style citation formatting. Requires a free DingDuff account; sign in through the connector's browser OAuth flow on first use.",
+  "version": "0.12.0",
   "author": {
     "name": "DingDuff"
   },
