@@ -1,10 +1,9 @@
 # How to publish this wiki
 
-These files are the **source** for the GitHub wiki on `DingDuff/dingduff-public`
-(repo renamed 2026-06-24 from `dingduff-plugins`; the local source folder is
-still `~/Desktop/DingDuff/dingduff-plugins/` — only the GitHub repo name changed).
+These files are the **source** for the GitHub wiki on `DingDuff/dingduff-public`.
 A GitHub wiki is a **separate git repo** (`<repo>.wiki.git`), so you push these
-pages there — not into the code repo.
+pages there — not into the code repo. Edit the pages here in the code repo's
+`wiki/` folder, then copy them into a clone of the wiki repo and push (below).
 
 > Note: this `PUBLISH.md` and the `<!-- INSTRUCTIONS FOR CLAUDE -->` comments are
 > fine to keep. `PUBLISH.md` is just a notes file; if you don't want it to appear
@@ -26,18 +25,22 @@ pages there — not into the code repo.
 git clone https://github.com/DingDuff/dingduff-public.wiki.git
 cd dingduff-public.wiki
 
-# Copy the wiki pages in (adjust the source path if needed):
-cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Home.md .
-cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Browser-Setup.md .
-cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Team-and-Enterprise.md .
-cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Troubleshooting.md .
-cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Skills.md .
-cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/Citation-Checking.md .
-cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/ChatGPT.md .
-cp /Users/kyle/Desktop/DingDuff/dingduff-plugins/wiki/_Sidebar.md .
+# Point SRC at the wiki/ folder of your dingduff-public checkout:
+SRC="/path/to/dingduff-public/wiki"
+
+# Copy every wiki page in (keep this list in sync when pages are added):
+cp "$SRC/Home.md" .
+cp "$SRC/Account-Settings.md" .
+cp "$SRC/Browser-Setup.md" .
+cp "$SRC/Team-and-Enterprise.md" .
+cp "$SRC/Troubleshooting.md" .
+cp "$SRC/Skills.md" .
+cp "$SRC/Citation-Checking.md" .
+cp "$SRC/ChatGPT.md" .
+cp "$SRC/_Sidebar.md" .
 
 git add .
-git commit -m "Add DingDuff install & troubleshooting wiki"
+git commit -m "Update DingDuff wiki"
 git push origin master   # GitHub wikis use the 'master' branch
 ```
 
@@ -53,7 +56,7 @@ The **link to put on your website** is the Home URL:
 
 ## Updating later
 
-Edit the files in `dingduff-plugins/wiki/`, copy them into your cloned
+Edit the files in `dingduff-public/wiki/`, copy them into your cloned
 `dingduff-public.wiki` checkout again, then `git add . && git commit && git push`.
 
 ---
