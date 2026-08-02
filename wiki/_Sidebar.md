@@ -1,6 +1,7 @@
 ### DingDuff Help
 
 - [Home / Install](Home)
+- [⭐ Account Settings for Optimal Use](Account-Settings)
 - [DingDuff with ChatGPT (beta)](ChatGPT)
 - [Browser Setup](Browser-Setup)
 - [Team & Enterprise](Team-and-Enterprise)

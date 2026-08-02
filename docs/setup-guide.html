@@ -1,0 +1,555 @@
+<title>DingDuff Setup Guide</title>
+<style>
+  :root {
+    --bg: #f4eddf;
+    --surface: #fdfaf5;
+    --surface-2: #efe7d6;
+    --ink: #29271f;
+    --ink-2: #5d574a;
+    --ink-3: #8a8271;
+    --border: #ddd1b6;
+    --border-strong: #cabf9f;
+    --accent: #0f6b4c;
+    --accent-strong: #064e3b;
+    --mint: #3eb489;
+    --grad: linear-gradient(135deg, #064e3b 0%, #2f8f66 55%, #3eb489 100%);
+    --tier1: #2f8f66;
+    --tier1-soft: rgba(62,180,137,0.12);
+    --tier2: #b0781a;
+    --tier2-soft: rgba(176,120,26,0.12);
+    --tier3: #857f70;
+    --tier3-soft: rgba(133,127,112,0.12);
+    --warn: #b0781a;
+    --warn-soft: rgba(176,120,26,0.10);
+    --shadow: 0 1px 2px rgba(40,34,20,0.04), 0 8px 24px -12px rgba(40,34,20,0.14);
+    --focus: #2f8f66;
+    --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+    --maxw: 50rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --surface: #1a2437;
+      --surface-2: #141d2e;
+      --ink: #e8ecf3;
+      --ink-2: #aab4c4;
+      --ink-3: #7e8a9c;
+      --border: #2a3852;
+      --border-strong: #38486а;
+      --border-strong: #38486a;
+      --accent: #62cda3;
+      --accent-strong: #8ce4ba;
+      --mint: #3eb489;
+      --grad: linear-gradient(135deg, #2d9cdb 0%, #34b08e 55%, #6fe0b5 100%);
+      --tier1: #5ec9a0;
+      --tier1-soft: rgba(94,201,160,0.14);
+      --tier2: #d9a441;
+      --tier2-soft: rgba(217,164,65,0.14);
+      --tier3: #93a0b3;
+      --tier3-soft: rgba(147,160,179,0.12);
+      --warn: #d9a441;
+      --warn-soft: rgba(217,164,65,0.12);
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -14px rgba(0,0,0,0.55);
+      --focus: #62cda3;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f4eddf; --surface: #fdfaf5; --surface-2: #efe7d6;
+    --ink: #29271f; --ink-2: #5d574a; --ink-3: #8a8271;
+    --border: #ddd1b6; --border-strong: #cabf9f;
+    --accent: #0f6b4c; --accent-strong: #064e3b; --mint: #3eb489;
+    --grad: linear-gradient(135deg, #064e3b 0%, #2f8f66 55%, #3eb489 100%);
+    --tier1: #2f8f66; --tier1-soft: rgba(62,180,137,0.12);
+    --tier2: #b0781a; --tier2-soft: rgba(176,120,26,0.12);
+    --tier3: #857f70; --tier3-soft: rgba(133,127,112,0.12);
+    --warn: #b0781a; --warn-soft: rgba(176,120,26,0.10);
+    --shadow: 0 1px 2px rgba(40,34,20,0.04), 0 8px 24px -12px rgba(40,34,20,0.14);
+    --focus: #2f8f66;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f172a; --surface: #1a2437; --surface-2: #141d2e;
+    --ink: #e8ecf3; --ink-2: #aab4c4; --ink-3: #7e8a9c;
+    --border: #2a3852; --border-strong: #38486a;
+    --accent: #62cda3; --accent-strong: #8ce4ba; --mint: #3eb489;
+    --grad: linear-gradient(135deg, #2d9cdb 0%, #34b08e 55%, #6fe0b5 100%);
+    --tier1: #5ec9a0; --tier1-soft: rgba(94,201,160,0.14);
+    --tier2: #d9a441; --tier2-soft: rgba(217,164,65,0.14);
+    --tier3: #93a0b3; --tier3-soft: rgba(147,160,179,0.12);
+    --warn: #d9a441; --warn-soft: rgba(217,164,65,0.12);
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px -14px rgba(0,0,0,0.55);
+    --focus: #62cda3;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ---- typography ---- */
+  h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; text-wrap: balance; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; margin: 0 0 0.6rem; }
+  h2 { font-size: clamp(1.5rem, 3.4vw, 2rem); line-height: 1.15; margin: 0 0 0.4rem; }
+  h3 { font-size: 1.16rem; line-height: 1.3; margin: 0; }
+  p { margin: 0 0 1rem; }
+  a { color: var(--accent); text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 1rem;
+  }
+  .lead { font-size: 1.16rem; color: var(--ink-2); max-width: 40ch; }
+  .muted { color: var(--ink-2); }
+  code, kbd, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+  .path {
+    font-family: var(--font-mono);
+    font-size: 0.84em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.12em 0.45em;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+
+  :focus-visible { outline: 2.5px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+  /* ---- hero ---- */
+  header.hero {
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(120% 80% at 100% -10%, var(--tier1-soft), transparent 60%),
+      var(--bg);
+  }
+  .hero-inner { padding: 4.5rem 0 3.5rem; }
+  .brand {
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    font-family: var(--font-serif); font-weight: 600; font-size: 1.05rem;
+    margin-bottom: 2.8rem; color: var(--ink);
+  }
+  .brand .mark {
+    width: 1.55rem; height: 1.55rem; border-radius: 7px;
+    background: var(--grad); display: grid; place-items: center;
+    color: #fff; font-size: 0.95rem;
+  }
+  .hero h1 .grad {
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  /* ---- sections ---- */
+  section { padding: 3.5rem 0; border-bottom: 1px solid var(--border); }
+  section:last-of-type { border-bottom: none; }
+  .section-head { margin-bottom: 2rem; }
+  .kicker {
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--accent); font-weight: 600; margin: 0 0 0.7rem;
+  }
+
+  /* ---- tier ladder ---- */
+  .ladder { display: flex; flex-direction: column; gap: 0.85rem; margin-top: 1.6rem; }
+  .tier {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 1rem 1.15rem; align-items: center;
+    background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--tc);
+    border-radius: 12px; padding: 1.15rem 1.3rem; box-shadow: var(--shadow);
+  }
+  .tier.t1 { --tc: var(--tier1); }
+  .tier.t2 { --tc: var(--tier2); }
+  .tier.t3 { --tc: var(--tier3); }
+  .tier .rank {
+    font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600;
+    width: 2.4rem; height: 2.4rem; border-radius: 9px; display: grid; place-items: center;
+    background: var(--tsoft); color: var(--tc);
+  }
+  .tier.t1 .rank { --tsoft: var(--tier1-soft); }
+  .tier.t2 .rank { --tsoft: var(--tier2-soft); }
+  .tier.t3 .rank { --tsoft: var(--tier3-soft); }
+  .tier .body { min-width: 0; }
+  .tier .toolname {
+    font-family: var(--font-mono); font-size: 0.95rem; font-weight: 600; color: var(--ink);
+    display: inline-block; margin-bottom: 0.15rem;
+  }
+  .tier .desc { color: var(--ink-2); font-size: 0.95rem; margin: 0.1rem 0 0; }
+  .tier .tag {
+    justify-self: end; align-self: start; white-space: nowrap;
+    font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.3em 0.6em; border-radius: 999px; font-weight: 600;
+    background: var(--tsoft); color: var(--tc); border: 1px solid color-mix(in srgb, var(--tc) 30%, transparent);
+  }
+  .tier.t1 .tag { --tsoft: var(--tier1-soft); --tc: var(--tier1); }
+  .tier.t2 .tag { --tsoft: var(--tier2-soft); --tc: var(--tier2); }
+  .tier.t3 .tag { --tsoft: var(--tier3-soft); --tc: var(--tier3); }
+
+  /* ---- fork cards ---- */
+  .fork { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; margin-top: 1.4rem; }
+  .fork a.card {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1.5rem 1.4rem; box-shadow: var(--shadow);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .fork a.card:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+  .fork .badge {
+    font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600;
+  }
+  .fork h3 { margin: 0.6rem 0 0.5rem; }
+  .fork p { font-size: 0.94rem; color: var(--ink-2); margin: 0 0 1rem; }
+  .fork .go { font-weight: 600; color: var(--accent); font-size: 0.92rem; font-family: var(--font-sans); }
+
+  /* ---- steps ---- */
+  .track { scroll-margin-top: 1.5rem; }
+  .track-flag {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; margin-bottom: 0.7rem;
+  }
+  .steps { list-style: none; counter-reset: step; padding: 0; margin: 1.4rem 0 0; display: flex; flex-direction: column; gap: 0.9rem; }
+  .steps > li {
+    counter-increment: step; position: relative;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.15rem 1.3rem 1.15rem 3.9rem; box-shadow: var(--shadow);
+  }
+  .steps > li::before {
+    content: counter(step); position: absolute; left: 1.15rem; top: 1.05rem;
+    width: 1.85rem; height: 1.85rem; border-radius: 8px;
+    background: var(--grad); color: #fff; font-family: var(--font-serif); font-weight: 600;
+    display: grid; place-items: center; font-size: 0.98rem;
+  }
+  .steps h3 { font-family: var(--font-sans); font-size: 1.02rem; font-weight: 650; margin-bottom: 0.35rem; }
+  .steps p { font-size: 0.93rem; color: var(--ink-2); margin: 0.35rem 0 0; }
+
+  /* setting row + switch */
+  .setting { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-top: 0.55rem; }
+  .switch {
+    --w: 2.5rem; width: var(--w); height: 1.4rem; border-radius: 999px; position: relative;
+    background: var(--border-strong); flex: none; transition: background 0.15s ease;
+  }
+  .switch .knob {
+    position: absolute; top: 2px; left: 2px; width: 1.1rem; height: 1.1rem; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: left 0.15s ease;
+  }
+  .switch.on { background: var(--tier1); }
+  .switch.on .knob { left: calc(var(--w) - 1.1rem - 2px); }
+  .state { font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; }
+  .state.on { color: var(--tier1); }
+  .state.off { color: var(--ink-3); }
+
+  /* ---- snippet / copy ---- */
+  .snippet {
+    display: flex; align-items: stretch; gap: 0; margin-top: 0.9rem;
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface-2);
+  }
+  .snippet .snippet-text {
+    flex: 1; min-width: 0; padding: 0.8rem 0.95rem; font-family: var(--font-mono); font-size: 0.82rem;
+    line-height: 1.5; color: var(--ink); white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere;
+  }
+  .snippet.inline .snippet-text { white-space: nowrap; overflow-x: auto; }
+  .copy {
+    flex: none; border: none; border-left: 1px solid var(--border); background: var(--surface);
+    color: var(--accent); font-family: var(--font-sans); font-weight: 600; font-size: 0.8rem;
+    padding: 0 1.1rem; cursor: pointer; transition: background 0.12s ease;
+  }
+  .copy:hover { background: var(--tier1-soft); }
+  .copy.done { color: var(--tier1); }
+
+  /* ---- callouts ---- */
+  .callout {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.25rem 1.4rem; box-shadow: var(--shadow);
+  }
+  .callout.warn { border-color: color-mix(in srgb, var(--warn) 40%, var(--border)); background: var(--warn-soft); }
+  .callout h3 { font-family: var(--font-sans); font-size: 1.02rem; font-weight: 650; margin-bottom: 0.5rem; }
+  .callout.warn h3 { color: var(--warn); }
+  .safety { list-style: none; padding: 0; margin: 0.6rem 0 0; display: flex; flex-direction: column; gap: 0.7rem; }
+  .safety li { display: grid; grid-template-columns: auto 1fr; gap: 0.7rem; font-size: 0.95rem; }
+  .safety .n {
+    font-family: var(--font-mono); font-weight: 700; color: var(--warn); font-size: 0.85rem;
+    background: color-mix(in srgb, var(--warn) 16%, transparent); border-radius: 6px;
+    width: 1.5rem; height: 1.5rem; display: grid; place-items: center; align-self: start;
+  }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+  .cost {
+    display: inline-flex; align-items: baseline; gap: 0.4rem; font-family: var(--font-mono);
+    font-size: 0.8rem; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 999px; padding: 0.25rem 0.7rem; margin-top: 0.3rem;
+  }
+  .cost b { color: var(--ink); font-weight: 700; }
+
+  .verify { display: grid; grid-template-columns: auto 1fr; gap: 1rem; align-items: start; }
+  .verify .check {
+    width: 2.4rem; height: 2.4rem; border-radius: 10px; background: var(--tier1-soft); color: var(--tier1);
+    display: grid; place-items: center; font-size: 1.3rem; flex: none;
+  }
+
+  footer { padding: 2.6rem 0 3.2rem; color: var(--ink-3); font-size: 0.88rem; }
+  footer a { color: var(--ink-2); }
+  .foot-row { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; align-items: center; }
+
+  .divider-note { font-size: 0.9rem; color: var(--ink-2); margin-top: 1.1rem; }
+  .arrow-on { color: var(--accent); font-weight: 700; }
+
+  @media (max-width: 640px) {
+    body { font-size: 16px; }
+    .fork, .grid2 { grid-template-columns: 1fr; }
+    .tier { grid-template-columns: auto 1fr; }
+    .tier .tag { grid-column: 2; justify-self: start; margin-top: 0.2rem; }
+    .hero-inner { padding: 3rem 0 2.5rem; }
+    .brand { margin-bottom: 1.8rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <span class="brand"><span class="mark">§</span> DingDuff</span>
+    <p class="eyebrow">Setup Guide</p>
+    <h1>Set DingDuff up to do its <span class="grad">deepest research.</span></h1>
+    <p class="lead">DingDuff is only as strong as the tools you let Claude reach. A five-minute setup is the difference between benchmark-grade research and a quicker, shallower answer &mdash; and the right steps depend on which kind of Claude account you have.</p>
+  </div>
+</header>
+
+<main>
+  <section id="why">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">The one thing that matters most</p>
+        <h2>How DingDuff researches your question</h2>
+        <p class="muted" style="max-width:52ch;">When you ask a legal question, DingDuff can work in three ways. Your setup decides which one Claude is able to use.</p>
+      </div>
+      <div class="ladder">
+        <div class="tier t1">
+          <div class="rank">1</div>
+          <div class="body">
+            <span class="toolname">fetch_opinion_file</span>
+            <p class="desc">Claude saves the full text of each opinion to a folder on your computer and reads the source itself. This is exactly how DingDuff runs in our benchmark tests.</p>
+          </div>
+          <span class="tag">Best &middot; benchmark-grade</span>
+        </div>
+        <div class="tier t2">
+          <div class="rank">2</div>
+          <div class="body">
+            <span class="toolname">opinion_extract</span>
+            <p class="desc">Claude pulls the most relevant passages from each opinion. Needs your own Anthropic API key (BYOK) &mdash; a dependable backup for when Tier&nbsp;1 isn&rsquo;t available.</p>
+          </div>
+          <span class="tag">Good backup</span>
+        </div>
+        <div class="tier t3">
+          <div class="rank">3</div>
+          <div class="body">
+            <span class="toolname">opinion_view</span>
+            <p class="desc">Claude reads cases directly in the chat. You&rsquo;ll still get an answer &mdash; just a less thoroughly researched one.</p>
+          </div>
+          <span class="tag">Fallback</span>
+        </div>
+      </div>
+      <p class="divider-note">The goal of this guide is simple: get Claude to operate in <strong>Tier&nbsp;1</strong>, with <strong>Tier&nbsp;2</strong> set up as an automatic backup. Tier&nbsp;3 is the least optimal version of DingDuff.</p>
+    </div>
+  </section>
+
+  <section id="which">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">Start here</p>
+        <h2>Which Claude account do you have?</h2>
+        <p class="muted" style="max-width:52ch;">This decides who controls the settings DingDuff needs. Pick your path &mdash; then everyone finishes with the same two steps at the end.</p>
+      </div>
+      <div class="fork">
+        <a class="card" href="#personal">
+          <span class="badge">Path A</span>
+          <h3>Personal &mdash; Pro or Max</h3>
+          <p>You control your own settings, so you can switch on everything Tier&nbsp;1 needs yourself.</p>
+          <span class="go">Set up a personal account &rarr;</span>
+        </a>
+        <a class="card" href="#team">
+          <span class="badge">Path B</span>
+          <h3>Teams or Enterprise</h3>
+          <p>Some settings are held by your organization&rsquo;s admin. You may need to send a short request &mdash; we&rsquo;ve written it for you.</p>
+          <span class="go">Set up a work account &rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="personal" class="track">
+    <div class="wrap">
+      <span class="track-flag">Path A &middot; Personal (Pro or Max)</span>
+      <h2>Turn on Tier&nbsp;1 research</h2>
+      <p class="muted" style="max-width:54ch;">Four settings, all in your own control. This lets Claude use <span class="path">fetch_opinion_file</span> to save and read full opinions.</p>
+      <ol class="steps">
+        <li>
+          <h3>Turn on code execution</h3>
+          <p>Lets Claude do the work of saving and reading files.</p>
+          <div class="setting"><span class="path">Settings &rarr; Capabilities &rarr; Code execution</span> <span class="switch on"><span class="knob"></span></span> <span class="state on">On</span></div>
+        </li>
+        <li>
+          <h3>Turn on network egress</h3>
+          <p>Lets Claude reach out and download each opinion. Without it, downloads silently fail.</p>
+          <div class="setting"><span class="path">Settings &rarr; Capabilities &rarr; Network egress</span> <span class="switch on"><span class="knob"></span></span> <span class="state on">On</span></div>
+        </li>
+        <li>
+          <h3>Turn off Cloud to keep tasks on your computer</h3>
+          <p>Turn this <strong>off</strong> so Claude runs locally &mdash; right where your connected folder lives (next step).</p>
+          <div class="setting"><span class="path">Cowork &rarr; Run new tasks in the cloud</span> <span class="switch"><span class="knob"></span></span> <span class="state off">Off</span></div>
+        </li>
+        <li>
+          <h3>Connect a folder each time you start a new CoWork chat</h3>
+          <p>Claude saves each opinion as an <span class="path">.md</span> file in that folder, then reads it back. This is what makes <span class="path">fetch_opinion_file</span> work &mdash; and it lets DingDuff research <em>more</em>, not less. If it isn&rsquo;t attached to a folder, it should save them in a virtual machine, but attaching a folder is the best way to ensure it uses this tool.</p>
+        </li>
+      </ol>
+      <p class="divider-note">Next: set up the <a href="#byok">BYOK backup</a>, then the <a href="#everyone">two steps everyone needs</a>.</p>
+    </div>
+  </section>
+
+  <section id="team" class="track">
+    <div class="wrap">
+      <span class="track-flag">Path B &middot; Teams or Enterprise</span>
+      <h2>Ask your admin for three things</h2>
+      <p class="muted" style="max-width:54ch;">On a work plan, these settings live in your organization&rsquo;s controls. Send your admin this short request &mdash; it&rsquo;s everything they need.</p>
+      <ol class="steps">
+        <li>
+          <h3>Approve the DingDuff connector</h3>
+          <p>Add DingDuff to the organization&rsquo;s list of approved connectors.</p>
+          <div class="setting"><span class="path">Organization settings &rarr; Connectors &rarr; Approved</span></div>
+        </li>
+        <li>
+          <h3>Turn on network egress</h3>
+          <p>Lets Claude download the full text of opinions.</p>
+          <div class="setting"><span class="path">Organization settings &rarr; Network egress</span> <span class="switch on"><span class="knob"></span></span> <span class="state on">On</span></div>
+        </li>
+        <li>
+          <h3>Allowlist the DingDuff domain</h3>
+          <p>Where the setting says <em>&ldquo;package managers only,&rdquo;</em> add DingDuff&rsquo;s domain to the allowlist.</p>
+          <div class="snippet inline"><span class="snippet-text">app.dingduff.com</span><button class="copy" type="button">Copy</button></div>
+        </li>
+      </ol>
+
+      <div style="margin-top:1.6rem;">
+        <h3 style="font-family:var(--font-sans);font-size:1.02rem;font-weight:650;margin-bottom:0.3rem;">Copy-and-send request for your admin</h3>
+        <div class="snippet"><span class="snippet-text">Hi &mdash; I&rsquo;d like to use DingDuff (a legal-research connector) inside Claude. Could you please, in our organization settings:
+
+1. Add the DingDuff connector to our approved connectors.
+2. Turn ON network egress.
+3. Add app.dingduff.com to the allowlist (where it says &ldquo;package managers only&rdquo;).
+
+Thank you!</span><button class="copy" type="button">Copy</button></div>
+      </div>
+
+      <div class="callout" style="margin-top:1.6rem;">
+        <h3>Can&rsquo;t get admin approval?</h3>
+        <p class="muted" style="margin:0;">Set up the <a href="#byok">BYOK backup</a> below on your own. It unlocks <span class="path">opinion_extract</span> (Tier&nbsp;2) &mdash; noticeably better results than going without, for roughly <strong>$5&ndash;15/month</strong> paid to Anthropic.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="byok" class="track">
+    <div class="wrap">
+      <span class="track-flag">Recommended backup &middot; both paths</span>
+      <h2>Set up BYOK (i.e., BYO-API Key) as your safety net</h2>
+      <p class="muted" style="max-width:56ch;">Adding your own Anthropic API key to your DingDuff profile unlocks <span class="path">opinion_extract</span> (Tier&nbsp;2), so DingDuff has somewhere to fall back to if <span class="path">fetch_opinion_file</span> ever isn&rsquo;t available. The earliest version of DingDuff ran entirely this way.</p>
+      <span class="cost">Typical cost, even with heavy research: <b>$5&ndash;15 / month</b>, billed by Anthropic</span>
+
+      <div class="grid2" style="margin-top:1.5rem;">
+        <div class="callout">
+          <h3>How to set it up</h3>
+          <ol style="margin:0;padding-left:1.1rem;color:var(--ink-2);font-size:0.95rem;line-height:1.7;">
+            <li>Create an API key in the <span class="path">Anthropic Console</span> (add a payment method first).</li>
+            <li>Open your profile at <span class="path">dingduff.com/profile</span>.</li>
+            <li>Paste the key in and save.</li>
+          </ol>
+        </div>
+        <div class="callout warn">
+          <h3>Two safety rules (required by our Terms)</h3>
+          <p class="muted" style="margin:0 0 0.3rem;font-size:0.93rem;">We&rsquo;ve implemented safety measures to protect your API key, but the internet is full of bad actors. We require all our users to:</p>
+          <ul class="safety">
+            <li><span class="n">1</span><span><strong>Use an API key unique to DingDuff.</strong> If anything ever looks off, you can deactivate that one key instantly &mdash; without touching anything else.</span></li>
+            <li><span class="n">2</span><span><strong>Turn off auto-reload.</strong> So you can never be hit with an unexpected large charge.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="everyone" class="track">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">Don&rsquo;t skip these</p>
+        <h2>Two steps everyone needs</h2>
+        <p class="muted" style="max-width:52ch;">Whichever account you have, finish with both of these.</p>
+      </div>
+      <ol class="steps">
+        <li>
+          <h3>Install the DingDuff plugin</h3>
+          <p>It bundles the connector with the skills that drive it. In Claude: <span class="path">Customize &rarr; Plugins &rarr; Add marketplace</span>, add the repository below, then install the <strong>dingduff</strong> plugin.</p>
+          <div class="snippet inline"><span class="snippet-text">DingDuff/dingduff-public</span><button class="copy" type="button">Copy</button></div>
+        </li>
+        <li>
+          <h3>Add one standing instruction</h3>
+          <p>Paste this into <span class="path">Settings &rarr; General &rarr; Instructions</span> so you never have to ask twice. This instruction is important for ensuring that Claude grabs for the <span class="path">fetch_opinion_file</span> tool.</p>
+          <div class="snippet"><span class="snippet-text">Always use DingDuff when you need to access primary legal sources. When you use DingDuff for primary legal sources, always use the dingduff-legal-research skill from the DingDuff plugin.</span><button class="copy" type="button">Copy</button></div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="verify">
+    <div class="wrap">
+      <div class="verify">
+        <div class="check">&#10003;</div>
+        <div>
+          <h2 style="margin-bottom:0.5rem;">Confirm it&rsquo;s working</h2>
+          <p class="muted" style="margin:0 0 0.2rem;">Start a fresh chat and ask Claude:</p>
+          <div class="snippet"><span class="snippet-text">Use DingDuff to find one Texas Supreme Court opinion on the economic loss rule and save it with fetch_opinion_file.</span><button class="copy" type="button">Copy</button></div>
+          <p class="muted" style="margin-top:0.9rem;">If a file lands in your connected folder and Claude reads it back to you, you&rsquo;re fully set up &mdash; DingDuff is now doing its deepest research.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <span><strong style="color:var(--ink-2);">DingDuff</strong> &middot; a free legal-research connector for Claude</span>
+    <span>&middot;</span>
+    <a href="https://dingduff.com">dingduff.com</a>
+    <span>&middot;</span>
+    <a href="mailto:hello@dingduff.com">hello@dingduff.com</a>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.parentNode.querySelector('.snippet-text').innerText;
+      var done = function () {
+        var old = btn.textContent;
+        btn.textContent = 'Copied';
+        btn.classList.add('done');
+        setTimeout(function () { btn.textContent = old; btn.classList.remove('done'); }, 1600);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(done);
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta); done();
+      }
+    });
+  });
+</script>

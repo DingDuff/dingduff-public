@@ -55,9 +55,18 @@ it** and ask Claude to walk you through everything. The easiest path:
 > Open Claude, paste the link to this page, and say:
 > *"Walk me through installing DingDuff, one step at a time."*
 
+> **⭐ Already installed? Read [Account Settings for Optimal Use](Account-Settings).**
+> Most users never turn on the settings that let DingDuff do its *deepest*
+> research (the `fetch_opinion_file` tool). That one page is the difference between
+> benchmark-grade results and a shallower answer — and it's the highest-value five
+> minutes you'll spend with DingDuff.
+
 ## Pages in this wiki
 
 - **Install DingDuff** (this page) — the main setup, start to finish.
+- [Account Settings for Optimal Use](Account-Settings) — the settings that let
+  DingDuff research at full strength (personal vs. Team/Enterprise). **Start here
+  after installing.**
 - [DingDuff with ChatGPT (beta)](ChatGPT) — how to connect DingDuff to ChatGPT instead of Claude (in beta; Claude is the primary, fully-supported experience).
 - [Browser Setup](Browser-Setup) — extra steps if you use Claude in a web browser instead of the desktop app.
 - [Team & Enterprise](Team-and-Enterprise) — what to do if you're on a work plan and your admin controls connectors.
