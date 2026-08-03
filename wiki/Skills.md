@@ -1,23 +1,26 @@
 <!--
 INSTRUCTIONS FOR CLAUDE
-These are optional but recommended add-ons. Help the user install the skills they
-want and apply the recommended settings. Skill install location differs by
-environment (Cowork desktop vs claude.ai vs Claude Code). The citation-check
-skill needs python3 and stored source files. Keep it simple; the research skills
-trigger on their own once installed.
+Installing the skills via the DingDuff plugin is part of setup, not an extra —
+walk the user through it. The `dingduff-legal-research` skill is essential; the
+other three (legal analysis, citation check, citation formatting) are optional
+add-ons. Skill install location differs by environment (Cowork desktop vs
+claude.ai vs Claude Code). The citation-check skill needs python3 and stored
+source files. Keep it simple; the research skills trigger on their own once
+installed.
 -->
 
-# Skills & Recommended Settings
+# Skills & Settings
 
-DingDuff works on its own, but these skills make it noticeably better. None are
-strictly required — though **`dingduff-legal-research`** is one we'd strongly
-recommend; see below.
+Install our skills — this is part of the setup, not an extra. The
+**`dingduff-legal-research`** skill is **essential**: it carries the research
+method and the bulk of our anti-hallucination instructions, which can't be
+delivered through the connector itself. (Legal analysis, citation check, and
+citation formatting are optional add-ons you can turn to when you need them.)
 
-**The easiest way to get them is our plugin**, which installs all our skills at
-once and keeps them current. Skip the file-by-file downloads unless you want to
-pick and choose.
+**Get them with our plugin** — it installs every skill at once and keeps them
+current. Use the file-by-file downloads only if you want to pick and choose.
 
-## Install the plugin (recommended)
+## Install the plugin
 
 1. In Claude, open **Customize** → the **Plugins** tab.
 2. Under **Personal plugins**, click **+** → **Add marketplace** →
@@ -47,8 +50,8 @@ marketplace.
 
 ### Legal research
 
-- **`dingduff-legal-research`** (v2.5) — **strongly recommended.** DingDuff works
-  without it, but it works a lot better with it: this skill carries the research
+- **`dingduff-legal-research`** (v2.5) — **essential; install this one.** DingDuff
+  works without it, but it works a lot better with it: this skill carries the research
   method and the bulk of our anti-hallucination instructions, which can't be
   delivered through the connector itself. If you install only one, install this
   one. It's one skill for legal research generally: it finds, retrieves, reads, and **validates** the controlling cases, statutes,
@@ -163,7 +166,7 @@ Once uploaded, the skill appears in the skill picker (the `/` menu). The researc
 skills trigger automatically when you ask a legal question; to cite-check, draft a
 memo with DingDuff, then ask Claude to **"cite-check this memo."**
 
-## Recommended Claude settings
+## Set these Claude settings
 
 ### Always use DingDuff for legal research
 
@@ -178,7 +181,7 @@ Add a custom instruction so you don't have to ask every time:
 ### Turn off chat training (privacy)
 
 In your Claude privacy settings, turn **off** the option that lets Claude train on
-your chats. Recommended for confidential legal work.
+your chats. Do this for confidential legal work.
 
 ## Tips for better results
 

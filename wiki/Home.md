@@ -55,10 +55,10 @@ it** and ask Claude to walk you through everything. The easiest path:
 > Open Claude, paste the link to this page, and say:
 > *"Walk me through installing DingDuff, one step at a time."*
 
-> **⭐ Already installed? Read [Account Settings for Optimal Use](Account-Settings).**
-> Most users never turn on the settings that let DingDuff do its *deepest*
-> research (the `fetch_opinion_file` tool). That one page is the difference between
-> benchmark-grade results and a shallower answer — and it's the highest-value five
+> **⭐ Installed already? Your next step is [Account Settings for Optimal Use](Account-Settings) — do it.**
+> Turning on the settings that let DingDuff do its *deepest* research (the
+> `fetch_opinion_file` tool) is not optional polish: it's the difference between
+> benchmark-grade results and a shallower answer, and it's the highest-value five
 > minutes you'll spend with DingDuff.
 
 ## Pages in this wiki
@@ -83,9 +83,9 @@ DingDuff itself is **free**. To use it you need two things:
 1. **A DingDuff login** — sign up at **https://dingduff.com** to create your
    account. This gives you the email + password you'll use when connecting.
    DingDuff is for **licensed attorneys** (per the Terms of Service).
-2. **Your own Claude account** — a paid plan (Pro, Max, Team, or Enterprise) is
-   recommended. The Claude **desktop app** with **Cowork** mode is the best
-   experience; a web browser also works (see [Browser Setup](Browser-Setup)).
+2. **Your own Claude account** — use a paid plan (Pro, Max, Team, or Enterprise).
+   The Claude **desktop app** with **Cowork** mode is the best experience; a web
+   browser also works (see [Browser Setup](Browser-Setup)).
 
 > Create the DingDuff account **first**. Step 2 below asks you to sign in with it,
 > so having it ready keeps the install to one pass.
@@ -133,9 +133,9 @@ connection. You'll be returned to Claude automatically.
 
 ### Step 3 — Allow DingDuff's tools
 
-After connecting, DingDuff appears in your connector list with its tools. We
-recommend setting each tool to **always allow** (the **checkmark**, not the
-hand icon) so you aren't asked for permission on every research request.
+After connecting, DingDuff appears in your connector list with its tools. Set
+each tool to **always allow** (the **checkmark**, not the hand icon) so you
+aren't asked for permission on every research request.
 
 ### Step 4 — Confirm it works
 
@@ -186,25 +186,32 @@ downloading anything and without flooding the chat** with full opinions.
 
 ---
 
-## Recommended settings (optional but worth it)
+## Next: set up your account settings — do this
 
-These take a few minutes and noticeably improve results. Full details on
-[Skills & Settings](Skills):
+Installing the connector is only half of it. To get DingDuff's **deepest
+research** — the benchmark-grade `fetch_opinion_file` tool — you also have to set
+your Claude account settings. This is not optional polish; it's the difference
+between real DingDuff and a shallower answer.
 
-- **Install our skills via the DingDuff plugin** — **Customize → Plugins →**
-  under *Personal plugins* **+ → Add marketplace → Add from a repository →**
-  `DingDuff/dingduff-public`, then **Install**. That's all our skills at once,
-  and new versions arrive through the marketplace instead of you re-downloading
-  files.
-  - Of the four, **`dingduff-legal-research` is strongly recommended** — DingDuff
-    works without it, but noticeably better with it, because that skill carries
-    the research method and most of our anti-hallucination instructions. The
-    other three (legal analysis, citation check, citation formatting) are
-    genuinely optional.
-- **Add a custom instruction** (Profile → *Instructions for Claude*) telling
-  Claude to always use DingDuff for legal research, so you don't have to ask each
-  time.
-- **Turn off chat training** in your Claude privacy settings.
+**Go to [Account Settings for Optimal Use](Account-Settings) and do every step
+there.** In short, here is what you need to do:
+
+1. **Turn on the settings that let Claude save and read sources** — code
+   execution, network egress, and (in Cowork) a connected folder. The full,
+   per-plan steps are on the [Account Settings](Account-Settings) page.
+2. **Install our skills via the DingDuff plugin** — **Customize → Plugins →**
+   under *Personal plugins* **+ → Add marketplace → Add from a repository →**
+   `DingDuff/dingduff-public`, then **Install**. This installs every skill at
+   once and keeps them current. The **`dingduff-legal-research`** skill is
+   **essential** — it carries the research method and most of our
+   anti-hallucination instructions. (Legal analysis, citation check, and citation
+   formatting are optional add-ons.)
+3. **Add the standing instruction** — Profile → *Instructions for Claude* — so
+   Claude reaches for DingDuff and `fetch_opinion_file` on every legal question.
+4. **Turn off chat training** in your Claude privacy settings.
+
+Full details are on [Account Settings for Optimal Use](Account-Settings) and
+[Skills & Settings](Skills).
 
 ---
 

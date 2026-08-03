@@ -82,7 +82,7 @@ to save and read full opinions.
    it isn't attached to a folder, it should save them in a virtual machine, but
    attaching a folder is the best way to ensure it uses this tool.
 
-> Next: set up the [BYOK backup](#recommended-backup-byok-byo-api-key) and the
+> Next: set up the [BYOK backup](#set-up-your-tier-2-backup-byok-byo-api-key) and the
 > [two steps everyone needs](#final-two-steps-that-everyone-needs).
 
 ---
@@ -109,13 +109,13 @@ admin for three things:
 >
 > Thank you!
 
-**Can't get admin approval?** Set up the [BYOK backup](#recommended-backup-byok-byo-api-key)
+**Can't get admin approval?** Set up the [BYOK backup](#set-up-your-tier-2-backup-byok-byo-api-key)
 below on your own. It unlocks `opinion_extract` (Tier 2) — noticeably better
 results than going without, for roughly **$5–15/month** paid to Anthropic.
 
 ---
 
-## Recommended backup: BYOK (BYO-API Key)
+## Set up your Tier 2 backup: BYOK (BYO-API Key)
 
 **Tier 2 (as a backup).** Adding your own Anthropic API key to your DingDuff profile unlocks
 `opinion_extract` (Tier 2), so DingDuff has somewhere to fall back to if
