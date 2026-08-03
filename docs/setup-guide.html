@@ -141,9 +141,8 @@
     margin-bottom: 2.8rem; color: var(--ink);
   }
   .brand .mark {
-    width: 1.55rem; height: 1.55rem; border-radius: 7px;
-    background: var(--grad); display: grid; place-items: center;
-    color: #fff; font-size: 0.95rem;
+    width: 1.9rem; height: 1.9rem; border-radius: 7px;
+    object-fit: cover; background: #fff; border: 1px solid var(--border);
   }
   .hero h1 .grad {
     background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -317,7 +316,7 @@
 
 <header class="hero">
   <div class="wrap hero-inner">
-    <span class="brand"><span class="mark">§</span> DingDuff</span>
+    <a href="https://www.dingduff.com/" class="brand" style="text-decoration:none;"><img class="mark" src="data:image/png;base64,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" alt="DingDuff dog" /> DingDuff</a>
     <p class="eyebrow">Setup Guide</p>
     <h1>Set DingDuff up to do its <span class="grad">deepest research.</span></h1>
     <p class="lead">DingDuff is only as strong as the tools you let Claude reach. A five-minute setup is the difference between benchmark-grade research and a quicker, shallower answer &mdash; and the right steps depend on which kind of Claude account you have.</p>
@@ -328,7 +327,7 @@
   <section id="why">
     <div class="wrap">
       <div class="section-head">
-        <p class="kicker">The one thing that matters most</p>
+        <p class="kicker">The thing that matters most</p>
         <h2>How DingDuff researches your question</h2>
         <p class="muted" style="max-width:52ch;">When you ask a legal question, DingDuff can work in three ways. Your setup decides which one Claude is able to use.</p>
       </div>
@@ -412,7 +411,7 @@
           <p>Claude saves each opinion as an <span class="path">.md</span> file in that folder, then reads it back. This is what makes <span class="path">fetch_opinion_file</span> work &mdash; and it lets DingDuff research <em>more</em>, not less. If it isn&rsquo;t attached to a folder, it should save them in a virtual machine, but attaching a folder is the best way to ensure it uses this tool.</p>
         </li>
       </ol>
-      <p class="divider-note">Next: set up the <a href="#byok">BYOK backup</a>, then the <a href="#everyone">two steps everyone needs</a>.</p>
+      <p class="divider-note">Next: set up the <a href="#byok">BYOK backup</a>, then the <a href="#everyone">final two steps everyone needs</a>.</p>
     </div>
   </section>
 
@@ -459,8 +458,8 @@ Thank you!</span><button class="copy" type="button">Copy</button></div>
 
   <section id="byok" class="track">
     <div class="wrap">
-      <span class="track-flag">Recommended backup &middot; both paths</span>
-      <h2>Set up BYOK (i.e., BYO-API Key) as your safety net</h2>
+      <span class="track-flag">Tier 2 (as a backup)</span>
+      <h2>Set up BYOK (BYO-API Key) as your safety net</h2>
       <p class="muted" style="max-width:56ch;">Adding your own Anthropic API key to your DingDuff profile unlocks <span class="path">opinion_extract</span> (Tier&nbsp;2), so DingDuff has somewhere to fall back to if <span class="path">fetch_opinion_file</span> ever isn&rsquo;t available. The earliest version of DingDuff ran entirely this way.</p>
       <span class="cost">Typical cost, even with heavy research: <b>$5&ndash;15 / month</b>, billed by Anthropic</span>
 
@@ -489,7 +488,7 @@ Thank you!</span><button class="copy" type="button">Copy</button></div>
     <div class="wrap">
       <div class="section-head">
         <p class="kicker">Don&rsquo;t skip these</p>
-        <h2>Two steps everyone needs</h2>
+        <h2>Final two steps that everyone needs</h2>
         <p class="muted" style="max-width:52ch;">Whichever account you have, finish with both of these.</p>
       </div>
       <ol class="steps">
@@ -527,6 +526,8 @@ Thank you!</span><button class="copy" type="button">Copy</button></div>
     <span><strong style="color:var(--ink-2);">DingDuff</strong> &middot; a free legal-research connector for Claude</span>
     <span>&middot;</span>
     <a href="https://dingduff.com">dingduff.com</a>
+    <span>&middot;</span>
+    <a href="https://github.com/DingDuff/dingduff-public/wiki">Troubleshooting &amp; more help</a>
     <span>&middot;</span>
     <a href="mailto:hello@dingduff.com">hello@dingduff.com</a>
   </div>

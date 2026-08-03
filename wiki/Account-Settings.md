@@ -55,7 +55,7 @@ This decides who controls the settings DingDuff needs.
   [Path B](#path-b--teams-or-enterprise)
 
 Whichever you have, everyone finishes with the same
-[two steps](#two-steps-everyone-needs) at the end.
+[two steps](#final-two-steps-that-everyone-needs) at the end.
 
 ---
 
@@ -82,8 +82,8 @@ to save and read full opinions.
    it isn't attached to a folder, it should save them in a virtual machine, but
    attaching a folder is the best way to ensure it uses this tool.
 
-> Next: set up the [BYOK backup](#recommended-backup-byok) and the
-> [two steps everyone needs](#two-steps-everyone-needs).
+> Next: set up the [BYOK backup](#recommended-backup-byok-byo-api-key) and the
+> [two steps everyone needs](#final-two-steps-that-everyone-needs).
 
 ---
 
@@ -109,15 +109,15 @@ admin for three things:
 >
 > Thank you!
 
-**Can't get admin approval?** Set up the [BYOK backup](#recommended-backup-byok)
+**Can't get admin approval?** Set up the [BYOK backup](#recommended-backup-byok-byo-api-key)
 below on your own. It unlocks `opinion_extract` (Tier 2) — noticeably better
 results than going without, for roughly **$5–15/month** paid to Anthropic.
 
 ---
 
-## Recommended backup: BYOK (i.e., BYO-API Key)
+## Recommended backup: BYOK (BYO-API Key)
 
-Adding your own Anthropic API key to your DingDuff profile unlocks
+**Tier 2 (as a backup).** Adding your own Anthropic API key to your DingDuff profile unlocks
 `opinion_extract` (Tier 2), so DingDuff has somewhere to fall back to if
 `fetch_opinion_file` ever isn't available. The earliest version of DingDuff ran
 entirely this way.
@@ -141,7 +141,7 @@ bad actors. We require all our users to:
 
 ---
 
-## Two steps everyone needs
+## Final two steps that everyone needs
 
 Whichever account you have, finish with both of these.
 
