@@ -15,10 +15,11 @@ You can use DingDuff in a web browser at **claude.ai / claude.com**. The
 connector setup is the same as on the desktop app — follow [Install
 DingDuff](Home) first. This page covers the **one extra thing browsers need**.
 
-> **Recommendation:** if you can install the Claude **desktop app** and use
-> **Cowork** mode, do that instead — it's the smoothest experience and already
-> includes the environment DingDuff's download and citation-check features rely
-> on. Use the browser only if the desktop app isn't an option for you.
+> **Use the desktop app if you can.** If you can install the Claude **desktop
+> app** and use **Cowork** mode, do that instead — it's the smoothest experience
+> and already includes the environment DingDuff's download and citation-check
+> features rely on. Use the browser only if the desktop app isn't an option for
+> you.
 
 ## Turn on Claude's code-execution environment ("virtual machine")
 
