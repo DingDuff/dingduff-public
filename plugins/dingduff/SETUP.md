@@ -53,17 +53,17 @@ directly, for example `/dingduff:dingduff-validity-check`.
 
 ## Already had the connector installed?
 
-Users who added DingDuff manually before installing this plugin — through the
-Anthropic connectors directory, or by pasting `https://app.dingduff.com/mcp`
-into a custom connector — will now have **two registrations of the same
-server**. Everything still works, but the duplicate doubles the tool list and
-wastes context.
+Users who already added DingDuff — through the Anthropic connectors directory,
+or by pasting `https://app.dingduff.com/mcp` into a custom connector — will now
+have **two registrations of the same server**. Leave them alone. Everything
+works, and on Cowork and claude.ai the connector is the registration holding the
+sign-in, so removing it breaks a working setup.
 
-Have them remove the older manual entry and keep the one the plugin provides.
-In Claude Code that is `claude mcp remove <name>` for the manually added server
-(the plugin's own entry cannot be removed this way, which is how you tell them
-apart). In Cowork or claude.ai, remove the duplicate from the connector
-settings.
+Claude may also report that `plugin:dingduff:dingduff` needs authorization while
+tool calls are succeeding. That is a known client-side bug
+([claude-ai-mcp#727](https://github.com/anthropics/claude-ai-mcp/issues/727)),
+not an account or install problem. Do not tell the user DingDuff is unavailable
+on the strength of it — try a tool call and go by the result.
 
 ## Troubleshooting
 
