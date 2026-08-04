@@ -205,10 +205,9 @@ and use **Download raw file**), then upload it to Claude —
   pick `dingduff`, and sign in through your browser. See
   [SETUP.md](plugins/dingduff/SETUP.md) for the full walkthrough.
 
-  **Already added DingDuff as a custom connector?** The plugin registers it
-  too, so you'll have the same server listed twice — harmless, but it doubles
-  the tool list. Remove your older manual entry with `claude mcp remove <name>`
-  and keep the plugin's.
+  **Already added DingDuff as a connector?** The plugin registers it too, so
+  you'll see the same server listed twice. Leave both in place — it's harmless,
+  and the connector is what holds your sign-in.
 
 Skill files are named `dingduff_<skill>_vX.Y.skill`; in Claude's picker they
 appear under their `dingduff-…` name. To update, re‑download and re‑upload (or

@@ -107,6 +107,19 @@ permitted.
 
 ---
 
+## Claude says DingDuff "requires authentication" — but everything works
+
+**Symptom:** Claude warns that DingDuff needs to be authorized, yet searches and
+documents come back normally.
+
+**Cause:** A known bug in Claude. It doesn't affect functionality.
+
+**Fix:** Nothing — the warning is cosmetic and DingDuff is working. Don't remove
+the connector or reinstall anything. If Claude says DingDuff is unavailable, ask
+it to run the search anyway.
+
+---
+
 ## It worked yesterday, now it asks me to sign in again
 
 **Symptom:** DingDuff stops responding and you're prompted to reconnect.
