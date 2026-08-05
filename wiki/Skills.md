@@ -81,7 +81,7 @@ marketplace.
 
 ### Case validity
 
-- **`dingduff-validity-check`** (v3.4) — before an argument rests on a case,
+- **`dingduff-validity-check`** (v3.5) — before an argument rests on a case,
   confirms the case is still good law **for the proposition you're citing it
   for** (a case gutted on one holding can be untouched on another). It traces
   the case's own appellate history, sweeps forward for opinions that overruled,
@@ -92,7 +92,16 @@ marketplace.
   it's unusable, and an explicit statement of what the check could **not** see.
   Use it on the cases an argument actually rests on, on any case an opponent
   hands you, and whenever a cite-check flags an authority.
-  Download: [`dingduff_validity-check_v3.4.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_validity-check_v3.4.skill)
+  Download: [`dingduff_validity-check_v3.5.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_validity-check_v3.5.skill)
+  **New in v3.5 — it reads the docket.** For a federal case, the most common way
+  a decision stops being law is that it was appealed, reversed, vacated, or
+  amended on reconsideration — and a vacatur on reconsideration often leaves no
+  published opinion for a citation search to find. v3.5 pulls the PACER docket
+  and reads the orders entered after the opinion issued, so that history shows up
+  in the clerk's own entries. Two caveats it will tell you about: PACER is
+  federal-only, so state cases don't get this pass, and docket coverage comes from
+  the crowd-sourced RECAP archive, so a missing entry is not proof nothing
+  happened.
   It's a heavy check, so Claude runs it in a subagent — that's expected and
   keeps your main chat fast. Needs the DingDuff connector.
   **Install it alongside Legal Research**, which calls it automatically on the
