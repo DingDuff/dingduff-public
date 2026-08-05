@@ -1,6 +1,6 @@
 ---
 name: "dingduff-validity-check"
-description: "Confirm whether a specific case is still good law before an argument rests on it. ALWAYS RUN IN A SUBAGENT (Sonnet is sufficient) — never in the main context window. Subagent will return the valid/invalid finding. Driven by the opinion_verify tool, with a docket check via the PACER tools for federal origins. Use on ANY load-bearing case — one an argument, memo section, brief point, or client advice actually rests on — whose validity has not already been confirmed. Also use when a case's status is contested or when a cite-check flags an authority. Delegate the citation plus the proposition it is cited for; get back a short verdict with confidence and coverage limits. (v3.5)"
+description: "Confirm whether a specific case is still good law before an argument rests on it. ALWAYS RUN IN A SUBAGENT (use Opus) — never in the main context window. Subagent will return the valid/invalid finding. Driven by the opinion_verify tool, with a docket check via the PACER tools for federal origins. Use on ANY load-bearing case — one an argument, memo section, brief point, or client advice actually rests on — whose validity has not already been confirmed. Also use when a case's status is contested or when a cite-check flags an authority. Delegate the citation plus the proposition it is cited for; get back a short verdict with confidence and coverage limits. (v3.6)"
 license: "DingDuff Skills License 1.0 — LICENSE.md has complete terms"
 ---
 
@@ -12,7 +12,7 @@ Built around `opinion_verify` (tool v1.0.0). Fallback in **Appendix A**.
 
 **Parameter detail, output anatomy, index glossary, failure modes, and cost live in `references/opinion-verify.md`.** Keep this file in context; load that one when you need to change a default, when a response contains something you do not recognise, or when a status comes back other than `ok`.
 
-**Written for a delegated subagent (Sonnet is sufficient; the work is procedural), not the main thread.** This task will flood the main context window if not delegated.
+**Written for a delegated subagent (use Opus; the reading and judgment this takes are demanding), not the main thread.** This task will flood the main context window if not delegated.
 
 ## Delegation contract
 

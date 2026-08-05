@@ -61,7 +61,7 @@ If a case has been overruled or substantially abrogated, **do not present it as 
 
 ## Heavyweight validation — delegate it
 
-Hand the case to `dingduff-validity-check` **in a subagent** (Sonnet is sufficient). Do not load that skill into your own context — the check reads full opinions and will flood the research thread.
+Hand the case to `dingduff-validity-check` **in a subagent** (use Opus). Do not load that skill into your own context — the check reads full opinions and will flood the research thread.
 
 Give the subagent all four:
 
