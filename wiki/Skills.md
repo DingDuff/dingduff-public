@@ -96,7 +96,7 @@ marketplace.
   **It reads the docket.** For a federal case, the most common way
   a decision stops being law is that it was appealed, reversed, vacated, or
   amended on reconsideration — and a vacatur on reconsideration often leaves no
-  published opinion for a citation search to find. v3.5 pulls the PACER docket
+  published opinion for a citation search to find. The skill pulls the PACER docket
   and reads the orders entered after the opinion issued, so that history shows up
   in the clerk's own entries. Two caveats it will tell you about: PACER is
   federal-only, so state cases don't get this pass, and docket coverage comes from
