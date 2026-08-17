@@ -50,7 +50,7 @@ marketplace.
 
 ### Legal research
 
-- **`dingduff-legal-research`** (v2.6) — **essential; install this one.** DingDuff
+- **`dingduff-legal-research`** (v2.7) — **essential; install this one.** DingDuff
   works without it, but it works a lot better with it: this skill carries the research
   method and the bulk of our anti-hallucination instructions, which can't be
   delivered through the connector itself. If you install only one, install this
@@ -59,7 +59,7 @@ marketplace.
   confirms everything is still good law. Thorough by default, and scales from a
   quick "what's the law on X" to a full doctrinal map. (Replaces the older
   separate case-law standard/deep and statute-research skills.)
-  Download: [`dingduff_legal-research_v2.6.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-research_v2.6.skill)
+  Download: [`dingduff_legal-research_v2.7.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_legal-research_v2.7.skill)
   **Two-tier validation.** Every case gets a quick screen, and the
   cases your argument actually rests on get handed to the full
   [Validity Check](#case-validity) below. Claude decides which is which, weighing
