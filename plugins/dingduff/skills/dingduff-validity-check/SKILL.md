@@ -1,6 +1,6 @@
 ---
 name: "dingduff-validity-check"
-description: "Confirm whether a specific case is still good law before an argument rests on it. ALWAYS RUN IN A SUBAGENT (use Opus) — never in the main context window. Subagent will return the valid/invalid finding. Driven by the opinion_verify tool, with a docket check via the PACER tools for federal origins. Use on ANY load-bearing case — one an argument, memo section, brief point, or client advice actually rests on — whose validity has not already been confirmed. Also use when a case's status is contested or when a cite-check flags an authority. Delegate the citation plus the proposition it is cited for; get back a short verdict with confidence and coverage limits. (v3.6)"
+description: "Confirm whether a specific case is still good law before an argument rests on it. ALWAYS RUN IN A SUBAGENT (use Opus) — never in the main context window. Subagent will return the valid/invalid finding. Driven by the opinion_verify tool, with a docket check via the PACER tools for federal origins. Use on ANY load-bearing case — one an argument, memo section, brief point, or client advice actually rests on — whose validity has not already been confirmed. Also use when a case's status is contested or when a cite-check flags an authority. Delegate the citation plus the proposition it is cited for; get back a short verdict with confidence and coverage limits. (v3.7)"
 license: "DingDuff Skills License 1.0 — LICENSE.md has complete terms"
 ---
 
@@ -124,10 +124,15 @@ Direct history — was *this decision* appealed, reversed, vacated, amended, or 
 
 Sequence, cheapest first:
 
-1. **Resolve the docket.** `search_for_pacer_docket` with the case name and `court_id`; add `docket_number` from the opinion's metadata when you have it.
+1. **Resolve the docket.** `search_for_pacer_docket` with `court_id` and the shortest distinctive party name; add `docket_number` from the opinion's metadata when you have it. `case_name` matches as a phrase, not as ANDed tokens, so a full caption returns zero: `"Dorley"` resolves, `"Dorley South Fayette"` returns nothing. A zero result here is far more often a query that was too long than a docket that is absent. Retry with a single party name before concluding the case is not in RECAP.
 2. **Confirm and orient.** `pacer_docket_view` with `include_entries: false` — metadata only, fast. Check the parties, judge, and terminated date against the opinion so you know you have the right case.
-3. **List the orders.** `search_within_pacer_docket` with `document_type: "orders"` and `filed_after` set to the origin's decision date. No text query is needed — the filter works on its own. This is the highest-value call in the sequence: it enumerates everything the court did after the opinion issued.
-4. **Target the dispositive entries.** `title_query` for `mandate`, `notice of appeal`, `amended judgment`, `reconsideration`, `vacate`, `remand`.
+3. **List everything filed after the decision.** `search_within_pacer_docket` with `filed_after` set to the origin's decision date and no `document_type`. No text query is needed — `filed_after` works on its own. This is the highest-value call in the sequence: it enumerates everything the court did after the opinion issued.
+
+   Do not narrow this call with `document_type: "orders"`. An appellate mandate is classified `appeals`, not `orders`, so the `orders` filter drops the single entry most likely to decide validity — `MANDATE of USCA — Affirming in part, Reversing in part, Remanding`. Take the unfiltered list and read it. If the docket is large enough that you must narrow, run `orders` and `appeals` as separate calls.
+
+   (The caution against defaulting `filed_after` under Step 2 governs `opinion_verify` only. On `search_within_pacer_docket`, `filed_after` is the correct and intended filter.)
+
+4. **Target the dispositive entries.** `title_query` for `mandate`, `notice of appeal`, `amended judgment`, `reconsideration`, `vacate`, `remand`. Use this to supplement item 3, never to replace it — some dockets return entries with an empty `description`, and those are invisible to any text query.
 5. **Follow the appeal.** For an appellate origin, or to learn how an appeal came out, search the reviewing court's own docket — `search_for_pacer_docket` with `court_id` set to the circuit plus the party names.
 6. **Before retrieving any PDF**, batch the document IDs through `check_pacer_availability` (up to 300 at once). It reports which documents are actually archived and saves a failed `pacer_document_view`.
 
@@ -135,6 +140,7 @@ What the docket settles that the citing graph cannot: whether an appeal was take
 
 **Limits — state these whenever you rely on the docket.**
 
+- The opinion index and the docket are separate sources. A later opinion in the same case is often absent from the opinion database while sitting on the docket as a retrievable PDF. Failing to find a second opinion by citation or keyword search is not a finding. Check the docket before reporting a coverage gap — and check `is_available` before reporting a document as unretrievable.
 - Coverage is the RECAP archive, which is crowd-sourced and incomplete. **A missing entry is not evidence that nothing happened.** Older dockets are thin.
 - Docket text is the clerk's language, not a holding. "VACATED and REMANDED" gives you the disposition, not its scope — retrieve the opinion before characterizing it.
 - A notice of appeal tells you an appeal was filed, not how it came out. Look for the mandate.
@@ -287,7 +293,7 @@ Most of the coverage line is copied from provenance rather than composed. A verd
 
 1. Resolve to a cluster ID. Call with `include_upstream: true` and, because this is Erie, `additional_courts: ["tex","texcrimapp"]`. Confirm all four courts in *Courts admitted*.
 2. `status: ok`; no integrity warning; 41 rows, no truncation; **5 Tier A**.
-3. Federal origin, so check the docket: resolve it in `ca5`, then `search_within_pacer_docket` with `document_type: "orders"` and `filed_after` the opinion date. Panel rehearing denied, no en banc, mandate issued. No direct history.
+3. Federal origin, so check the docket: resolve it in `ca5`, then `search_within_pacer_docket` with `filed_after` the opinion date and no `document_type`. Panel rehearing denied, no en banc, mandate issued. No direct history.
 4. Deduplicate: 5 rows are 3 distinct decisions (one appears as combined + dissent).
 5. One is a dissent — note as pressure, not treatment. Two remain. Retrieve both and read the region around the snippet offsets.
 6. The first engages *Smith* only on personal jurisdiction — a different holding. Set aside. The second, a 2023 `ca5` panel (depth 7, out-degree 5, term *"to the extent that"*), engages the enforceability holding directly and narrows it to at-will employment, reserving fixed-term contracts.
