@@ -119,6 +119,8 @@ String, required. A CourtListener **cluster** ID — not an opinion ID. Resolve 
 
 If you pass an opinion ID you will usually get `origin_not_found`, which is also what you get for a case that postdates the mirror generation. Distinguish them by re-resolving the citation.
 
+A reporter citation that will not resolve is common and is not evidence the case is absent — citation metadata is uneven, and a case can be present and full-text searchable while carrying no reporter citation at all. Escalate to a name search before concluding anything, per SKILL.md Step 1.
+
 The tool expands the cluster to **all** of its opinions before joining the citation graph, so citers recorded against a concurrence or dissent are included. The Origin block reports the expansion — Bowers, for example, is 6 opinions (`010combined`, `020lead`, 2× `030concurrence`, 2× `040dissent`).
 
 ### `court_scope`
@@ -334,12 +336,12 @@ Nine values. Several are not findings at all. **Never collapse any of them into 
 | `ok` | Graph built, flag hits present | Triage |
 | `no_flag_hits` | Small graph populated, zero flag terms anywhere | A distinct finding. **Not "valid"** — term matching cannot see silent narrowing. Run Leg 4 |
 | `small_graph_empty` | Citers exist, none from a court that could invalidate | **Not "no treatment."** First check whether Erie courts were wrongly omitted |
-| `no_citers_genuine` | Zero citers **and** `citation_count` is 0 | A real zero. CourtListener coverage may still be incomplete |
+| `no_citers_genuine` | Zero citers **and** `citation_count` is 0 | Not a finding on its own. The graph holds no edge, which is not the same as no case citing the origin — run the full-text searches in SKILL.md Step 4 before reporting a zero |
 | `integrity_warning` | Mirror citers < 50% of CourtListener's `citation_count` | **STOP.** Return INDETERMINATE. Do not reason around it |
 | `origin_not_found` | Cluster not in the mirror | Postdates the generation, or you passed an opinion ID. Re-resolve |
 | `mirror_unavailable` | Mirror down or disabled | **Not a finding.** No API fallback exists by design |
 | `mirror_busy` | Admission control refused | **Not a finding.** Wait and retry. Do not fall back |
-| `tool_disabled` | Kill switch | Fall back to Appendix A of SKILL.md |
+| `tool_disabled` | Kill switch | Load `references/fallback.md` |
 
 `integrity_warning` exists because a false "no citing opinions" is the most dangerous output this tool can produce, and a 77.5-million-row citation load is exactly the kind of thing that can go partially wrong quietly.
 

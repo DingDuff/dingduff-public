@@ -1,14 +1,14 @@
 ---
 name: "dingduff-validity-check"
-description: "Confirm whether a specific case is still good law before an argument rests on it. ALWAYS RUN IN A SUBAGENT (use Opus) — never in the main context window. Subagent will return the valid/invalid finding. Driven by the opinion_verify tool, with a docket check via the PACER tools for federal origins. Use on ANY load-bearing case — one an argument, memo section, brief point, or client advice actually rests on — whose validity has not already been confirmed. Also use when a case's status is contested or when a cite-check flags an authority. Delegate the citation plus the proposition it is cited for; get back a short verdict with confidence and coverage limits. (v3.7)"
+description: "Confirm whether a specific case is still good law before an argument rests on it. ALWAYS RUN IN A SUBAGENT (use Opus) — never in the main context window. Subagent will return the valid/invalid finding. Driven by the opinion_verify tool, with a docket check via the PACER tools for federal origins. Use on ANY load-bearing case — one an argument, memo section, brief point, or client advice actually rests on — whose validity has not already been confirmed. Also use when a case's status is contested or when a cite-check flags an authority. Delegate the citation plus the proposition it is cited for; get back a short verdict with confidence and coverage limits. (v3.8)"
 license: "DingDuff Skills License 1.0 — LICENSE.md has complete terms"
 ---
 
 # Case Validity Check
 
-Determines whether one case is still good law **for the specific proposition it is being cited for**. Deeper than the light treatment sweep in `dingduff-legal-research/references/validity.md`. Use that to triage; use this before an argument actually rests on a case.
+Determines whether one case is still good law **for the specific proposition it is being cited for**. Deeper than the light treatment sweep in `dingduff-legal-research/references/validity.md`. Use that to triage; use this before an argument or opinion actually rests on a case.
 
-Built around `opinion_verify` (tool v1.0.0). Fallback in **Appendix A**.
+Built around `opinion_verify`. If it is unavailable, load `references/fallback.md`.
 
 **Parameter detail, output anatomy, index glossary, failure modes, and cost live in `references/opinion-verify.md`.** Keep this file in context; load that one when you need to change a default, when a response contains something you do not recognise, or when a status comes back other than `ok`.
 
@@ -62,6 +62,15 @@ Skip only when validity was confirmed in this matter and nothing changed, or whe
 
 Resolve the citation to a **cluster ID** first (`opinion_search` / `opinion_view`).
 
+**If the reporter citation does not resolve, do not stop — search by name.** Citation metadata is uneven. A case can be present, complete, and full-text searchable while carrying no reporter citation, in which case it is unreachable by cite and reachable by name. Escalate in this order, stopping when you have the cluster:
+
+1. `opinion_search` on the **case name in quotes** — `"Fought v. City of Wilkes-Barre"`.
+2. `opinion_search` on a **distinctive phrase** from the opinion, if you have one.
+3. `opinion_search` on the **citation string in quotes** — this returns opinions *citing* the case, whose text confirms it is real and gives you the parties and court.
+4. For a federal origin, the **docket** (Step 3), which reaches cases the opinion index does not.
+
+**A citation that will not resolve is not evidence that the case does not exist**, and is never a basis for suggesting a citation is fabricated. Say which routes you tried.
+
 ```json
 {
   "cluster_id": "<origin>",
@@ -105,12 +114,12 @@ It discards the 67 curated terms and makes recall a function of your vocabulary.
 | `ok` | Proceed |
 | `no_flag_hits` | A distinct finding. **Not "valid."** Go run Leg 4 |
 | `small_graph_empty` | **Not "no treatment."** Check whether Erie courts were omitted |
-| `no_citers_genuine` | A real zero; CL coverage may still be incomplete |
+| `no_citers_genuine` | **Not a finding until the full-text searches are run** — see "Finding citing opinions" in Step 4 |
 | `integrity_warning` | **STOP. INDETERMINATE.** |
 | `origin_not_found` | May postdate the generation, or you passed an opinion ID. Re-resolve |
 | `mirror_unavailable` | **Not a finding.** No API fallback exists by design |
 | `mirror_busy` | **Not a finding.** Wait and retry |
-| `tool_disabled` | Fall back to Appendix A |
+| `tool_disabled` | Load `references/fallback.md` |
 
 Never collapse any of these into "no adverse treatment."
 
@@ -130,11 +139,12 @@ Sequence, cheapest first:
 
    Do not narrow this call with `document_type: "orders"`. An appellate mandate is classified `appeals`, not `orders`, so the `orders` filter drops the single entry most likely to decide validity — `MANDATE of USCA — Affirming in part, Reversing in part, Remanding`. Take the unfiltered list and read it. If the docket is large enough that you must narrow, run `orders` and `appeals` as separate calls.
 
-   (The caution against defaulting `filed_after` under Step 2 governs `opinion_verify` only. On `search_within_pacer_docket`, `filed_after` is the correct and intended filter.)
+   (The caution against defaulting `filed_after` under Step 1 governs `opinion_verify` only. On `search_within_pacer_docket`, `filed_after` is the correct and intended filter.)
 
-4. **Target the dispositive entries.** `title_query` for `mandate`, `notice of appeal`, `amended judgment`, `reconsideration`, `vacate`, `remand`. Use this to supplement item 3, never to replace it — some dockets return entries with an empty `description`, and those are invisible to any text query.
-5. **Follow the appeal.** For an appellate origin, or to learn how an appeal came out, search the reviewing court's own docket — `search_for_pacer_docket` with `court_id` set to the circuit plus the party names.
-6. **Before retrieving any PDF**, batch the document IDs through `check_pacer_availability` (up to 300 at once). It reports which documents are actually archived and saves a failed `pacer_document_view`.
+4. **Target the dispositive entries.** `title_query` for `mandate`, `notice of appeal`, `amended judgment`, `reconsideration`, `vacate`, `remand`, `stay`, `amended opinion`, `substituted opinion`, `withdrawn`, `superseding`, `errata`, `clarify`, `alter or amend`, `Rule 59`, `Rule 60`, `relief from judgment`. Use this to supplement item 3, never to replace it — some dockets return entries with an empty `description`, and those are invisible to any text query.
+5. **Read the `(Attachments: ...)` parenthetical in every entry description.** An entry listing an *Amended Opinion*, *Substituted Opinion*, *Corrected Opinion*, or *Errata* is notice that the published opinion was changed — and the parenthetical is frequently the only evidence, because those attachments are often not archived as separate retrievable documents. Report a known, unretrieved amendment. Never record it as an absence.
+6. **Follow the appeal.** For an appellate origin, or to learn how an appeal came out, search the reviewing court's own docket — `search_for_pacer_docket` with `court_id` set to the circuit plus the party names.
+7. **Before retrieving any PDF**, batch the document IDs through `check_pacer_availability` (up to 300 at once). It reports which documents are actually archived and saves a failed `pacer_document_view`.
 
 What the docket settles that the citing graph cannot: whether an appeal was taken at all; whether the mandate issued and what it said; whether the judgment was amended or vacated on reconsideration **without any published opinion to cite**; whether the case was consolidated or stayed.
 
@@ -157,6 +167,22 @@ If the docket shows the origin was reversed or vacated, the verdict is settled �
 `opinion_verify` reads only cluster text fields and the docket linkage, and **measured on this mirror generation those are almost never populated** — `history` on ~0.5% of clusters, `date_cert_granted` on effectively none. **Its silence is not evidence.** Step 3 is the real check. What the tool *does* find reliably is `same_litigation_candidate` by party-name overlap — treat those as leads to confirm, not findings.
 
 **Direct history means same-litigation appellate treatment only** — was *this opinion* reversed, vacated, or modified on appeal. A later unrelated case overruling the origin is **adverse treatment**, not direct history. Do not put it in the DIRECT HISTORY field.
+
+Before calling something direct history, **confirm the later court had authority to review or modify the origin.** A coordinate court reaching the same litigation — after transfer, for instance — can disagree with the origin and reach the opposite result, but it cannot review it. That disagreement is worth reporting; report it as a conflict rather than as direct history, and name both decisions.
+
+### Finding citing opinions — run both routes
+
+The citation graph and full-text search each miss cases the other finds. **Run both on every load-bearing case.** Neither alone is complete coverage.
+
+1. **The graph** — `opinion_verify`, and `show_citing_opinions` where you need the list.
+2. **`opinion_search` on the case name in quotes** — `"Fought v. City of Wilkes-Barre"`. Catches citers the graph holds no edge for, including courts citing by short form, docket number, or Westlaw number.
+3. **`opinion_search` on the citation string in quotes** — `"466 F. Supp. 3d 477"`.
+
+Deduplicate by case name and triage the combined set exactly as you would Tier A output — the snippets give you the citing court, the date, and the surrounding language.
+
+Running `court_scope` at more than one setting is **not** a cross-check: every setting reads the same edge table, so a missing edge is missing at all of them. Agreement between scopes says nothing about completeness.
+
+A zero or a thin graph is not a finding until the searches are run. **State in the coverage line which routes produced the citing results.**
 
 ### Counting correctly
 
@@ -241,7 +267,7 @@ Always qualified by the proposition. Name the replacement whenever the case is u
 |---|---|
 | **INDETERMINATE** | `integrity_warning`; `origin_not_found`; origin has no text |
 | **Low** | API supplement failed or skipped; truncation with Tier A dropped |
-| **Moderate** | `api_truncated`; unaudited courts in the graph; Leg 4 inconclusive; adverse cases screened but not read; federal origin whose docket could not be checked |
+| **Moderate** | `api_truncated`; unaudited courts in the graph; Leg 4 inconclusive; adverse cases screened but not read; federal origin whose docket could not be checked; citing opinions sought by only one route |
 | **High** | Full coverage, every surviving Tier A read, Leg 4 run and consistent — **or** an express reversal or overruling retrieved and verified under Step 5 |
 
 **Unaudited courts.** 3,330 courts in the hierarchy, **205 human-audited**; the state intermediate appellate layer is largely unaudited. The tool names them — pass that through.
@@ -276,9 +302,8 @@ operative language. The graph hub is usually the candidate.>
 
 COVERAGE: <small graph size and distinct-case count; courts admitted; mirror generation
 and watermark; API supplement status; truncation/unscanned; unaudited courts; docket
-check status; content_hash. Say which legs ran and which were moot under Step 5. State
-that silent overruling — a court changing the rule without citing this case or its line —
-is outside the reach of any citation-graph method.>
+check status; which routes produced the citing results; content_hash. Say which legs ran
+and which were moot under Step 5.>
 ```
 
 Most of the coverage line is copied from provenance rather than composed. A verdict without a stated boundary invites more reliance than the method can bear.
@@ -304,44 +329,21 @@ Most of the coverage line is copied from provenance rather than composed. A verd
 
 ---
 
-## Appendix A — fallback when `opinion_verify` is unavailable
+## Limitations to keep in mind
 
-Applies on `tool_disabled` or in an environment without the tool. (`mirror_unavailable` and `mirror_busy` are **not** cues to fall back.) Step 3's docket check is unaffected — run it regardless.
+These bound what the evidence can support. Raise one in the verdict only when it actually bit on this case.
 
-```json
-{"identifier": "<cite or cluster_id>", "order_by": "-dateFiled", "limit_results": 50}
-{"identifier": "<cite or cluster_id>", "order_by": "-citeCount", "limit_results": 50}
-{"identifier": "<cite or cluster_id>", "court_ids": "<invalidating courts>", "limit_results": 50, "order_by": "-dateFiled"}
-```
-
-**Do not skip `-citeCount`** — the overruling case may sit far below the date-ordered horizon while being the most-cited in the line. Filter to courts that could invalidate; `court_types: "F"` is not state-scoped, so name circuits explicitly (`ca5`). Cross-check in `opinion_search`:
-
-```
-"<case name>" AND (overruled OR abrogated OR "no longer good law" OR "we disapprove" OR
-"receded from" OR "declined to follow" OR "superseded by statute" OR "limited to its facts" OR
-"called into question" OR "we now hold" OR "to the extent that")
-```
-
-Classify with the traditional codes, each tied to a point of law: **o** overruled · **L** limited · **q** questioned · **c** criticized · **d** distinguished · **e** explained · **f** followed · **h** harmonized · **j** cited in dissent. Legs 3 and 4 unchanged. A result of 0 is not proof a case is uncited. Confidence caps at **moderate**.
-
----
-
-## Standing limits — state these in every verdict
-
-1. Cannot detect silent overruling by a court that never cites the origin or its line.
-2. Cannot detect statutory supersession unless a citing opinion says so.
-3. Flag-term recall is bounded by the 67-term list.
-4. Cannot distinguish holding from dictum, argument, or quotation.
-5. Inherits every CourtListener gap: thin state appellate coverage, unpublished dispositions, eyecite failures, unreported orders.
-6. CourtListener frequently lacks reporter pagination, so a pinpoint page often cannot be produced from tool output at all.
+1. **A zero result is never proof of validity.**
+2. Silent overruling — a court changing the rule without citing the origin or its line — is outside the reach of any citation-graph method. Leg 4 is the only route to it, and it is not exhaustive.
+3. Flag-term recall in the tool is bounded by its curated list; the word searches in Step 4 are what widen it.
+4. Snippets and tiers do not distinguish holding from dictum, argument, or quotation. Reading does — see Hard Rule 1 and Step 4.
+5. Inherits every CourtListener gap: thin state appellate coverage, unpublished dispositions, eyecite failures, unreported orders, incomplete citation metadata.
+6. CourtListener frequently lacks reporter pagination, so a pinpoint page often cannot be produced from tool output; take pincites from retrieved text.
 7. `opinion_verify`'s own direct-history detection is near-blind on this mirror generation; the docket check in Step 3 is the real one.
 8. Docket coverage is the RECAP archive — crowd-sourced, incomplete, federal only. A missing entry is not evidence.
-9. Erie and certified-question authority requires `additional_courts`.
-10. **A zero result is never proof of validity.**
 
 ---
 
 ## Related skills
 
 Called by `dingduff-legal-research`, `dingduff-legal-analysis`, `dingduff-legal-writing`, and `dingduff-citation-check`. Note the capacity ceiling: a 20-citation cite-check is ~160 tool calls and ~2 minutes occupying both admission slots — do not run two at once. Citation *form* is `dingduff-legal-citation-format`; this skill checks whether a case **is** good law, not whether the cite **looks** right.
-

@@ -81,7 +81,7 @@ marketplace.
 
 ### Case validity
 
-- **`dingduff-validity-check`** (v3.7) — before an argument rests on a case,
+- **`dingduff-validity-check`** (v3.8) — before an argument rests on a case,
   confirms the case is still good law **for the proposition you're citing it
   for** (a case gutted on one holding can be untouched on another). It traces
   the case's own appellate history, sweeps forward for opinions that overruled,
@@ -92,7 +92,7 @@ marketplace.
   it's unusable, and an explicit statement of what the check could **not** see.
   Use it on the cases an argument actually rests on, on any case an opponent
   hands you, and whenever a cite-check flags an authority.
-  Download: [`dingduff_validity-check_v3.7.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_validity-check_v3.7.skill)
+  Download: [`dingduff_validity-check_v3.8.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_validity-check_v3.8.skill)
   **It reads the docket.** For a federal case, the most common way
   a decision stops being law is that it was appealed, reversed, vacated, or
   amended on reconsideration — and a vacatur on reconsideration often leaves no
