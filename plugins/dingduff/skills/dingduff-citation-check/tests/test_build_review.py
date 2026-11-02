@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 
 import pytest
 
@@ -274,8 +275,10 @@ class TestOriginalsEmbedding:
         assert 'id="cc-vendor-pdfjs-worker"' in html
         assert 'id="cc-vendor-docx-preview"' not in html
         assert 'id="cc-vendor-jszip"' not in html
-        # Vendor code rides as inert base64, never as executable script src.
-        assert 'type="text/plain" id="cc-vendor-pdfjs"' in html
+        # Hosted libraries ride as inert {url, sha256} references, never as
+        # executable script src; the small local CSS is embedded base64.
+        assert 'type="application/json" id="cc-vendor-pdfjs"' in html
+        assert 'type="text/plain" id="cc-vendor-pdfjs-css"' in html
 
     def test_no_originals_flag_skips_everything(self, tmp_path, H):
         _project_with_original(tmp_path, H)
@@ -288,6 +291,7 @@ class TestOriginalsEmbedding:
             {"key": "cl-12345", "reason": "disabled"}]
         # No inert vendor payload tags (the viewer JS naming the ids is fine).
         assert 'type="text/plain" id="cc-vendor-' not in html
+        assert 'type="application/json" id="cc-vendor-' not in html
 
     def test_missing_original_skips_not_fatal(self, tmp_path, H):
         orig, _ = _project_with_original(tmp_path, H)
@@ -377,6 +381,40 @@ class TestOriginalsEmbedding:
         payload = {"originals": {"cl-1": {"media_type": "application/pdf",
                                           "data_b64": "", "sha256": None}}}
         with pytest.raises(br.FatalError, match="does not match MANIFEST"):
+            br.render_vendor_block(payload, vendor)
+
+    def test_hosted_library_is_referenced_by_url_and_sha256(self, tmp_path, H, br):
+        vendor = tmp_path / "vendor"
+        vendor.mkdir()
+        url = "https://example.test/pdf.min.mjs"
+        (vendor / "MANIFEST.json").write_text(json.dumps({"libraries": [
+            {"name": "pdfjs-dist (main)", "file": "pdfjs/pdf.min.mjs",
+             "version": "0", "sha256": "a" * 64, "url": url,
+             "license": "Apache-2.0"},
+            {"name": "pdfjs-dist (worker)", "file": "pdfjs/pdf.worker.min.mjs",
+             "version": "0", "sha256": "b" * 64, "url": url + "?w",
+             "license": "Apache-2.0"},
+            {"name": "css", "file": "pdfjs/text_layer.css", "version": "0",
+             "sha256": "c" * 64, "url": url + "?c", "license": "Apache-2.0"},
+        ]}), encoding="utf-8")
+        payload = {"originals": {"cl-1": {"media_type": "application/pdf",
+                                          "data_b64": "", "sha256": None}}}
+        block = br.render_vendor_block(payload, vendor)
+        m = re.search(r'<script type="application/json" id="cc-vendor-pdfjs">'
+                      r'(.*?)</script>', block)
+        assert json.loads(m.group(1)) == {"url": url, "sha256": "a" * 64}
+
+    def test_hosted_library_without_sha256_is_fatal(self, tmp_path, H, br):
+        vendor = tmp_path / "vendor"
+        vendor.mkdir()
+        (vendor / "MANIFEST.json").write_text(json.dumps({"libraries": [
+            {"name": "pdfjs-dist (main)", "file": "pdfjs/pdf.min.mjs",
+             "version": "0", "sha256": "", "url": "https://example.test/x",
+             "license": "Apache-2.0"},
+        ]}), encoding="utf-8")
+        payload = {"originals": {"cl-1": {"media_type": "application/pdf",
+                                          "data_b64": "", "sha256": None}}}
+        with pytest.raises(br.FatalError, match="no valid sha256"):
             br.render_vendor_block(payload, vendor)
 
     def test_real_vendor_dir_passes_manifest_check(self, tmp_path, H, br):

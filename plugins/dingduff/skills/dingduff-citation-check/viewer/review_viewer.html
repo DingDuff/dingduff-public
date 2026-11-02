@@ -2265,11 +2265,14 @@
   // Native source rendering (standalone bundle only)
   // ==================================================================
   //
-  // build_review.py embeds original PDF/DOCX bytes and the vendored viewer
-  // libraries (PDF.js, docx-preview + JSZip) as base64 in inert
-  // `<script type="text/plain">` tags; they are booted here via Blob URLs
-  // — no network fetches, works over file://. The MCP iframe never receives
-  // these tags, so none of this code runs there.
+  // build_review.py embeds original PDF/DOCX bytes as base64, plus an inert
+  // `<script type="application/json">` reference ({url, sha256}) for each
+  // viewer library the originals need (PDF.js, docx-preview + JSZip). The
+  // first native view fetches each library from its pinned URL, refuses it
+  // unless the sha256 matches, and boots it via a Blob URL. Only the
+  // libraries are fetched; the memo and originals never leave this file.
+  // The MCP iframe never receives these tags, so none of this code runs
+  // there.
   //
   // Anchoring reuses the EXACT verifier-locked machinery (normalizeWithMap
   // + findQuoteSpan) against the native render's own text: per page for the
@@ -2284,11 +2287,39 @@
     return bytes;
   }
 
+  function bytesToHex(buf) {
+    var bytes = new Uint8Array(buf);
+    var hex = "";
+    for (var i = 0; i < bytes.length; i++) {
+      hex += (bytes[i] < 16 ? "0" : "") + bytes[i].toString(16);
+    }
+    return hex;
+  }
+
+  // Promise<Blob URL | null>: null when the bundle carries no reference.
   function vendorBlobUrl(id) {
     var el = document.getElementById(id);
-    if (!el) { return null; }
-    var bytes = b64ToBytes(el.textContent.replace(/\s+/g, ""));
-    return URL.createObjectURL(new Blob([bytes], { type: "text/javascript" }));
+    if (!el) { return Promise.resolve(null); }
+    var ref;
+    try { ref = JSON.parse(el.textContent); }
+    catch (e) { return Promise.reject(new Error("bad viewer-library reference " + id)); }
+    if (!window.fetch || !window.crypto || !window.crypto.subtle) {
+      return Promise.reject(new Error("this browser cannot verify the viewer libraries"));
+    }
+    return fetch(ref.url, { cache: "force-cache" }).then(function (resp) {
+      if (!resp.ok) { throw new Error("HTTP " + resp.status); }
+      return resp.arrayBuffer();
+    }).then(function (buf) {
+      return window.crypto.subtle.digest("SHA-256", buf).then(function (digest) {
+        if (bytesToHex(digest) !== ref.sha256) {
+          throw new Error("the downloaded viewer library failed its checksum");
+        }
+        return URL.createObjectURL(new Blob([buf], { type: "text/javascript" }));
+      });
+    }, function (err) {
+      throw new Error("could not download the viewer library (are you online?): " +
+                      (err && err.message ? err.message : err));
+    });
   }
 
   // ---- PDF (PDF.js) ----
@@ -2303,11 +2334,13 @@
 
   function bootPdfJs() {
     if (pdfLibPromise) { return pdfLibPromise; }
-    pdfLibPromise = new Promise(function (resolve, reject) {
-      var mainUrl = vendorBlobUrl("cc-vendor-pdfjs");
+    pdfLibPromise = Promise.all([
+      vendorBlobUrl("cc-vendor-pdfjs"),
+      vendorBlobUrl("cc-vendor-pdfjs-worker")
+    ]).then(function (urls) {
+      var mainUrl = urls[0], workerUrl = urls[1];
       if (!mainUrl) {
-        reject(new Error("the PDF viewer library is not embedded in this bundle"));
-        return;
+        throw new Error("the PDF viewer library is not referenced in this bundle");
       }
       // Dynamic import via Function so this file never contains `import(`
       // at the top level — engines old enough to choke on the syntax would
@@ -2315,9 +2348,8 @@
       // never runs this code).
       var dynImport;
       try { dynImport = new Function("u", "return import(u)"); }
-      catch (e) { reject(new Error("this browser cannot load ES modules")); return; }
-      dynImport(mainUrl).then(function (lib) {
-        var workerUrl = vendorBlobUrl("cc-vendor-pdfjs-worker");
+      catch (e) { throw new Error("this browser cannot load ES modules"); }
+      return dynImport(mainUrl).then(function (lib) {
         if (workerUrl && lib.GlobalWorkerOptions) {
           lib.GlobalWorkerOptions.workerSrc = workerUrl;
         }
@@ -2333,8 +2365,8 @@
           style.textContent = atob(cssEl.textContent.replace(/\s+/g, ""));
           document.head.appendChild(style);
         }
-        resolve(lib);
-      }, reject);
+        return lib;
+      });
     });
     return pdfLibPromise;
   }
@@ -2866,17 +2898,17 @@
   function bootDocx() {
     if (docxLibPromise) { return docxLibPromise; }
     function loadClassic(id) {
-      return new Promise(function (resolve, reject) {
-        var url = vendorBlobUrl(id);
+      return vendorBlobUrl(id).then(function (url) {
         if (!url) {
-          reject(new Error("the Word viewer library is not embedded in this bundle"));
-          return;
+          throw new Error("the Word viewer library is not referenced in this bundle");
         }
-        var s = document.createElement("script");
-        s.src = url;
-        s.onload = resolve;
-        s.onerror = function () { reject(new Error("failed to load " + id)); };
-        document.head.appendChild(s);
+        return new Promise(function (resolve, reject) {
+          var s = document.createElement("script");
+          s.src = url;
+          s.onload = resolve;
+          s.onerror = function () { reject(new Error("failed to load " + id)); };
+          document.head.appendChild(s);
+        });
       });
     }
     docxLibPromise = loadClassic("cc-vendor-jszip")

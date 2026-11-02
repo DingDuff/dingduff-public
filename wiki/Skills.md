@@ -110,14 +110,14 @@ marketplace.
 
 ### Citation checking
 
-- **`dingduff-citation-check`** (v2.5.8) — after you draft a memo (Markdown, **Word, or
+- **`dingduff-citation-check`** (v2.5.9) — after you draft a memo (Markdown, **Word, or
   Google Docs**), verifies every citation against the opinion and statute files
   you saved **plus any other source you supply** — a Restatement section, a case
   missing from CourtListener, the other side's brief, a factual PDF — quality-checks
   that each highlighted passage is the on-point part of the source, and opens a
   review panel showing the memo and each source side by side. Runs entirely in
   your own session.
-  Download: [`dingduff_citation-check_v2.5.8.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_citation-check_v2.5.8.skill)
+  Download: [`dingduff_citation-check_v2.5.9.skill`](https://github.com/DingDuff/dingduff-public/blob/HEAD/dist/dingduff_citation-check_v2.5.9.skill)
   Needs `python3` (Cowork and Claude Code provide it). Save case/statute sources
   first via `fetch_opinion_file` / `fetch_statute_file`; drop any other source (text or a
   text-layer PDF) into your working folder.

@@ -4,7 +4,7 @@
 Reads cites.json (schema v1) plus the memo and source files it references,
 verifies every file's checksum, pre-segments all documents (so the viewer's
 JavaScript never performs offset arithmetic), and injects the payload into
-the shared viewer template to produce a single self-contained review.html.
+the shared viewer template to produce a single review.html.
 
 Checksum policy: any mismatch between cites.json and the bytes on disk is
 fatal (exit 2) — wrong highlights are worse than no highlights. --force
@@ -13,14 +13,15 @@ prominent warning banner.
 
 Native rendering (cite-check 1.1): when cites.json records an `original`
 binary for a source (sources/originals/*.pdf|docx), the bundle embeds the
-file base64 plus the vendored viewer libraries it needs (PDF.js /
+file base64 plus references to the viewer libraries it needs (PDF.js /
 docx-preview — see viewer/vendor/MANIFEST.json), so the standalone panel
 can show the source in native format with the same quote-anchored
-highlights. Everything stays in this one local file — original documents
-never leave the machine. The original-binary hash guards ONLY the native
-render: a changed/oversized/missing original falls back to the verified
-text view (recorded in payload.originals_skipped), never the other way
-around. An original that fails its checksum is fatal without --force,
+highlights. The panel downloads those libraries (pinned, sha256-checked)
+the first time a native view opens; the memo and original documents stay
+in this one local file and never leave the machine. The original-binary
+hash guards ONLY the native render: a changed/oversized/missing original
+falls back to the verified text view (recorded in
+payload.originals_skipped), never the other way around. An original that fails its checksum is fatal without --force,
 same policy as the text files.
 
 Exit codes: 0 success; 2 fatal (missing/mismatched/unreadable files,
@@ -342,11 +343,14 @@ def load_vendor_manifest(vendor_dir: Path) -> Dict[str, Dict[str, Any]]:
 
 
 def render_vendor_block(payload: Dict[str, Any], vendor_dir: Path) -> str:
-    """Base64 the vendored libraries the embedded originals need, as inert
-    `<script type="text/plain">` tags the viewer boots via Blob URLs. Base64
-    keeps the embedding HTML-safe (minified JS contains '</script>'-adjacent
-    strings) and doubles as the Blob-worker source. Each file's sha256 is
-    verified against MANIFEST.json — supply-chain drift is fatal, not silent.
+    """Reference or embed the viewer libraries the embedded originals need.
+
+    A hosted library (MANIFEST.json entry with a `url`) becomes an inert
+    `<script type="application/json">` tag holding its pinned url + sha256;
+    the viewer fetches it on first use, checks the sha256, and boots it via a
+    Blob URL. A local library is base64'd into an inert `<script
+    type="text/plain">` tag (base64 keeps the embedding HTML-safe) after its
+    sha256 is verified against MANIFEST.json — drift is fatal, not silent.
     """
     needed: List[str] = []
     for entry in payload.get("originals", {}).values():
@@ -362,6 +366,16 @@ def render_vendor_block(payload: Dict[str, Any], vendor_dir: Path) -> str:
         lib = manifest.get(rel)
         if lib is None:
             raise FatalError(f"vendor file {rel} is not in MANIFEST.json")
+        notices.append(f"{lib['name']} {lib['version']} ({lib['license']})")
+        if lib.get("url"):
+            if not re.fullmatch(r"[0-9a-f]{64}", lib.get("sha256", "")):
+                raise FatalError(f"vendor file {rel} has no valid sha256 in "
+                                 "MANIFEST.json — refusing to reference "
+                                 "unverifiable third-party code")
+            ref = escape_payload({"url": lib["url"], "sha256": lib["sha256"]})
+            tags.append(f'<script type="application/json" '
+                        f'id="{VENDOR_TAG_IDS[rel]}">{ref}</script>')
+            continue
         path = vendor_dir / rel
         if not path.is_file():
             raise FatalError(f"vendor file not found: {path}")
@@ -374,11 +388,10 @@ def render_vendor_block(payload: Dict[str, Any], vendor_dir: Path) -> str:
                 "unverified third-party code")
         tags.append(f'<script type="text/plain" id="{VENDOR_TAG_IDS[rel]}">'
                     f'{base64.b64encode(data).decode("ascii")}</script>')
-        notices.append(f"{lib['name']} {lib['version']} ({lib['license']})")
-    header = ("<!-- Embedded third-party viewer libraries (offline native "
-              "rendering): " + "; ".join(notices) +
-              ". License texts: viewer/vendor/ in the dingduff-citation-check "
-              "skill. -->")
+    header = ("<!-- Third-party viewer libraries for native rendering "
+              "(hosted ones are downloaded and sha256-checked on first use): " +
+              "; ".join(notices) + ". License texts: viewer/vendor/MANIFEST.json "
+              "in the dingduff-citation-check skill. -->")
     return header + "\n" + "\n".join(tags)
 
 
