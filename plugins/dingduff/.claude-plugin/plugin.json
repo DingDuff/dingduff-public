@@ -1,10 +1,14 @@
 {
   "name": "dingduff",
+  "displayName": "DingDuff Legal Skills",
   "description": "Legal research for lawyers using Claude: bundles the DingDuff legal-research connector together with the skills that drive it — legal research (find, read, and validate cases, statutes, and regulations), legal analysis (frame issues, synthesize rules, structure proof), case validity checking (confirm a case is still good law for the proposition it is cited for), citation verification of Markdown/Word/Google Docs memos against stored sources plus attorney-supplied documents, and practitioner-style citation formatting. Requires a free DingDuff account; sign in through the connector's browser OAuth flow on first use.",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "author": {
-    "name": "DingDuff"
+    "name": "DingDuff",
+    "email": "hello@dingduff.com",
+    "url": "https://www.dingduff.com"
   },
+  "icon": "./.claude-plugin/icon.png",
   "keywords": [
     "legal",
     "law",
@@ -15,7 +19,10 @@
     "attorneys"
   ],
   "homepage": "https://www.dingduff.com",
+  "documentationUrl": "https://github.com/DingDuff/dingduff-public/wiki",
+  "supportUrl": "https://www.dingduff.com/faq",
   "privacyPolicyUrl": "https://www.dingduff.com/privacy",
+  "termsOfServiceUrl": "https://www.dingduff.com/terms",
   "repository": "https://github.com/DingDuff/dingduff-public",
   "license": "DingDuff Skills License 1.0"
 }
