@@ -1,6 +1,6 @@
 ---
 name: dingduff-citation-check
-description: "Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html that can display supplied PDF/Word sources in native format with the verified highlights overlaid) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.5.8)"
+description: "Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html that can display supplied PDF/Word sources in native format with the verified highlights overlaid) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.5.9)"
 license: "DingDuff Skills License 1.0 — LICENSE.md has complete terms"
 ---
 
@@ -21,8 +21,10 @@ that actually exists in the source file.
 Privacy: verification runs entirely in this session. When the review panel
 opens via `citecheck_review`, the memo transits the DingDuff server once as
 tool arguments and is never stored or logged. The standalone `review.html`
-fallback never leaves the machine at all. State this plainly if the user
-asks.
+fallback never leaves the machine at all; when it shows a PDF or Word
+source in native format, it downloads only the open-source viewer libraries
+(PDF.js, docx-preview, JSZip) from DingDuff's public GitHub repository and
+checks each against a pinned checksum. State this plainly if the user asks.
 
 ## Step 0 — Preflight
 
