@@ -1,6 +1,6 @@
 ---
 name: "dingduff-validity-check"
-description: "Confirm whether a specific case is still good law before an argument rests on it. ALWAYS RUN IN A SUBAGENT (use Opus) — never in the main context window. Subagent will return the valid/invalid finding. Driven by the opinion_verify tool, with a docket check via the PACER tools for federal origins. Use on ANY load-bearing case — one an argument, memo section, brief point, or client advice actually rests on — whose validity has not already been confirmed. Also use when a case's status is contested or when a cite-check flags an authority. Delegate the citation plus the proposition it is cited for; get back a short verdict with confidence and coverage limits. (v3.8)"
+description: "Confirm whether a specific case is still good law before an argument rests on it. ALWAYS RUN IN A SUBAGENT (use Opus) — never in the main context window. Subagent will return the valid/invalid finding. Driven by the opinion_verify tool, with a docket check via the PACER tools for federal origins. Use on ANY load-bearing case — one an argument, memo section, brief point, or client advice actually rests on — whose validity has not already been confirmed. Also use when a case's status is contested or when a cite-check flags an authority. Delegate the citation plus the proposition it is cited for; get back a short verdict with confidence and coverage limits. (v3.9)"
 license: "DingDuff Skills License 1.0 — LICENSE.md has complete terms"
 ---
 
@@ -11,6 +11,8 @@ Determines whether one case is still good law **for the specific proposition it 
 Built around `opinion_verify`. If it is unavailable, load `references/fallback.md`.
 
 **Parameter detail, output anatomy, index glossary, failure modes, and cost live in `references/opinion-verify.md`.** Keep this file in context; load that one when you need to change a default, when a response contains something you do not recognise, or when a status comes back other than `ok`.
+
+**`references/dispositions.md` covers what a disposition, notation, or subsequent-history flag did to the opinion, jurisdiction by jurisdiction.** Load it whenever one is in front of you.
 
 **Written for a delegated subagent (use Opus; the reading and judgment this takes are demanding), not the main thread.** This task will flood the main context window if not delegated.
 
@@ -170,6 +172,14 @@ If the docket shows the origin was reversed or vacated, the verdict is settled �
 
 Before calling something direct history, **confirm the later court had authority to review or modify the origin.** A coordinate court reaching the same litigation — after transfer, for instance — can disagree with the origin and reach the opposite result, but it cannot review it. That disagreement is worth reporting; report it as a conflict rather than as direct history, and name both decisions.
 
+### Name the disposition
+
+"Reversed," "vacated," and "dismissed" cover dispositions with opposite effects, and the effect is jurisdiction-dependent. Take the operative words from the order or mandate rather than from a summary, then **load `references/dispositions.md` and check the row for the deciding jurisdiction.**
+
+Two traps it exists to catch: vacating a *judgment* is not necessarily vacating the *opinion*, and the federal rule does not carry across — Texas, for one, rejects it. And several notations that read as negative are neutral or affirmatively positive: a refused, denied, or dismissed writ or petition is not adverse treatment, and Texas `writ ref'd` is Supreme Court approval.
+
+Where the reference marks a jurisdiction **UNRESOLVED**, treat the disposition's effect as unestablished, say so, and cap confidence.
+
 ### Finding citing opinions — run both routes
 
 The citation graph and full-text search each miss cases the other finds. **Run both on every load-bearing case.** Neither alone is complete coverage.
@@ -227,7 +237,7 @@ Full SCOTUS opinions exceed single-response limits. Do not try to read one strai
 
 ## Step 5 — Early exit
 
-**If Step 3 or Leg 2 produces a clear, express reversal, vacatur, or overruling that you have retrieved and read, and it (a) addresses the proposition at issue and (b) comes from a court that binds the target court — the finding is dispositive. Legs 3 and 4 are moot. Say so in the coverage line and stop.**
+**If Step 3 or Leg 2 produces a clear, express reversal, vacatur, or overruling that you have retrieved and read, and it (a) is a disposition that actually reaches the opinion in the deciding jurisdiction, (b) addresses the proposition at issue, and (c) comes from a court that binds the target court — the finding is dispositive. Legs 3 and 4 are moot. Say so in the coverage line and stop.**
 
 Still apply the recursion rule: verify the overruling case is itself good law before naming it as the replacement.
 
