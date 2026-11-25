@@ -578,6 +578,7 @@
         <button id="src-search-next" type="button" title="Next match (Enter)" aria-label="Next match">›</button>
       </div>
       <div class="fail-note" id="card-fail" hidden></div>
+      <div class="fail-note" id="card-marks" hidden></div>
       <div class="stale-note" id="card-stale" hidden></div>
       <div id="verdicts">
         <button data-verdict="verified" title="Shortcut: 1">✅ Verified</button>
@@ -1402,6 +1403,15 @@
     source_missing: "No stored copy of the cited authority was available to verify against."
   };
 
+  // A verified quote that lies in struck or underlined text is never passed silently.
+  function updateMarksNote(cid) {
+    var box = $("card-marks");
+    var c = byId[cid];
+    var text = c && c.status === "anchored" ? marksWarning(c.anchors) : "";
+    box.hidden = !text;
+    box.textContent = text ? "\u26a0 " + text : "";
+  }
+
   function select(cid, scrollMemo) {
     var prev = current;
     current = cid;
@@ -1440,6 +1450,8 @@
         ("Verification failed: " + (c.failure_reason || "unknown"))) +
         " Review this citation with particular care.";
     } else { fail.hidden = true; }
+
+    updateMarksNote(cid);
 
     var stale = $("card-stale");
     if (staleReviews[cid]) {
@@ -1653,7 +1665,8 @@
   function anchoredLabel(c) {
     if (c.status === "anchored") {
       var allExact = (c.anchors || []).every(function (a) { return a.match === "exact"; });
-      return allExact && c.anchors.length ? "✓ Verbatim" : "✓ Verbatim (formatting differs)";
+      var lab = allExact && c.anchors.length ? "✓ Verbatim" : "✓ Verbatim (formatting differs)";
+      return marksWarning(c.anchors) ? lab + " ⚠ includes struck or underlined text" : lab;
     }
     if (c.status === "no_quote_claimed") { return "— no quote claimed"; }
     var reason = c.failure_reason || "failed";
@@ -2024,6 +2037,57 @@
   // /g instance is safe — and the /g flag is load-bearing (normalizeWithMap's
   // lastIndex-seeded exec depends on it).
   var PAGE_MARKER_RE = /<<pg\. (\d+)>>/g;
+  // `<u>` `</u>` `<s>` `</s>`: printed underlining / strike-through in a library source; zero-width when matching.
+  // LOCKSTEP with MARK_TAG_RE in verify_anchors.py.
+  var MARK_TAG_RE = /<\/?[us]>/y;
+  var MARK_TAG_G = /<\/?[us]>/g;
+  var MARK_RUN_LIMIT = 5, MARK_TEXT_LIMIT = 120;
+  function markText(text) {
+    text = text.replace(MARK_TAG_G, "").replace(/<<pg\. [^<>\s]{1,24}>>/g, " ");
+    text = text.split(/\s+/).filter(Boolean).join(" ");
+    return text.length <= MARK_TEXT_LIMIT ? text : text.slice(0, MARK_TEXT_LIMIT - 1) + "\u2026";
+  }
+  // Which words of text[start:end] the source prints struck through or underlined (`<s>` / `<u>` tokens of a library
+  // edition): {struck: [...], underlined: [...]} (a key only when it has a run) or null. LOCKSTEP with marks_in_span in
+  // verify_anchors.py (shared vectors: marks_vectors in tests/normalization_vectors.json).
+  function marksInSpan(text, start, end) {
+    if (text.slice(0, end).indexOf("<") === -1) { return null; }
+    var openAt = {}, found = { s: [], u: [] };
+    function take(k, a, b) {
+      var lo = Math.max(a, start), hi = Math.min(b, end);
+      if (lo < hi) { var t = markText(text.slice(lo, hi)); if (t) { found[k].push(t); } }
+    }
+    var re = /<\/?[us]>/g, m;
+    var head = text.slice(0, end);
+    while ((m = re.exec(head)) !== null) {
+      var tag = m[0], k = tag.charAt(1) === "/" ? tag.charAt(2) : tag.charAt(1);
+      if (tag.charAt(1) !== "/") { openAt[k] = m.index + tag.length; }
+      else if (openAt[k] !== undefined) { take(k, openAt[k], m.index); delete openAt[k]; }
+    }
+    Object.keys(openAt).forEach(function (k) { take(k, openAt[k], end); });
+    var out = {}, any = false;
+    [["s", "struck"], ["u", "underlined"]].forEach(function (p) {
+      if (found[p[0]].length) { out[p[1]] = found[p[0]].slice(0, MARK_RUN_LIMIT); any = true; }
+    });
+    return any ? out : null;
+  }
+  // The sentence a verified quote gets when it includes marked text (same words as verify_anchors.marks_warning), or "".
+  function marksWarning(anchors) {
+    var struck = [], under = [];
+    (anchors || []).forEach(function (a) {
+      if (a && a.marks) {
+        (a.marks.struck || []).forEach(function (t) { struck.push(t); });
+        (a.marks.underlined || []).forEach(function (t) { under.push(t); });
+      }
+    });
+    var parts = [];
+    function q(list) { return list.map(function (t) { return "\u201c" + t + "\u201d"; }).join("; "); }
+    if (struck.length) { parts.push("text the source prints struck through (deleted): " + q(struck)); }
+    if (under.length) { parts.push("text the source prints underlined (added): " + q(under)); }
+    if (!parts.length) { return ""; }
+    return "This passage includes " + parts.join(" and ") + ". The words verify as printed, but a quotation should say so; " +
+      "struck words are not current text.";
+  }
 
   // Markdown syntax emitted by opinion_store's renderer: line-leading
   // block-quote prefixes ("> ", nested "> > ") and footnote marks ("[^1]").
@@ -2082,6 +2146,11 @@
         PAGE_MARKER_RE.lastIndex = i;
         var pm = PAGE_MARKER_RE.exec(text);
         if (pm && pm.index === i) { i = pm.index + pm[0].length; continue; }
+      }
+      if (text.charCodeAt(i) === 60 /* < */) {
+        MARK_TAG_RE.lastIndex = i;
+        var mt = MARK_TAG_RE.exec(text);
+        if (mt) { i += mt[0].length; continue; }
       }
       // Line-leading "> " block-quote prefixes and "[^n]" footnote marks
       // are renderer syntax, not content — zero-width like page markers.
@@ -3316,6 +3385,7 @@
         (c.anchors || []).forEach(function (a, i) {
           var span = findQuoteSpan(docText, normDoc, a.quote);
           if (span) {
+            if (!a.marks) { var mk = marksInSpan(docText, span.start, span.end); if (mk) { a.marks = mk; } }
             spans.push({ start: span.start, end: span.end, mark: c.id + ":" + i });
           } else {
             misses.count += 1;
@@ -3323,6 +3393,7 @@
           }
         });
       });
+      if (typeof current !== "undefined" && current) { updateMarksNote(current); }
       // Offset→page map for the citation card's "anchor on p. N" hint —
       // all-JS index space here (the spans were just derived from docText),
       // so there is no Python-codepoint hazard.

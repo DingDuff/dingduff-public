@@ -81,6 +81,11 @@ WORD_HYPHEN_RE = re.compile(r"(?<=\w)-(?=\w)")
 # way Cf chars (ZWSPs etc.) are handled below. Keep this regex in lockstep
 # with PAGE_MARKER_RE in review_viewer.html.
 PAGE_MARKER_RE = re.compile(r"<<pg\. \d+>>")
+# The four tokens a library edition uses for printed underlining and strike-through (`<u>…</u>`, `<s>…</s>`; the
+# library's `text_marks = "drawn-rules-1"`). They are not printed words, so a quote matches whether or not its words are
+# underlined or struck: zero-width during matching, like page markers. Applied to the source AND the quote, so a quote
+# that itself holds one still matches. Keep in lockstep with MARK_TAG_RE in review_viewer.html.
+MARK_TAG_RE = re.compile(r"</?[us]>")
 # Markdown syntax emitted by opinion_store's renderer (html_to_markdown)
 # around body text: line-leading block-quote prefixes ("> ", nested "> > ")
 # and footnote marks ("[^1]"). Both are presentation, not content, and are
@@ -157,6 +162,11 @@ def normalize_with_map(text: str) -> Tuple[str, List[int], List[int]]:
             pm = PAGE_MARKER_RE.match(text, i)
             if pm:
                 i = pm.end()
+                continue
+        if text[i] == "<":
+            mt = MARK_TAG_RE.match(text, i)
+            if mt:
+                i = mt.end()
                 continue
         # Line-leading "> " block-quote prefixes and "[^n]" footnote marks
         # are renderer syntax, not content — zero-width like page markers.
@@ -345,6 +355,61 @@ class Anchor:
     start: int
     end: int
     match: str
+
+
+MARK_KINDS = {"s": "struck", "u": "underlined"}
+MARK_RUN_LIMIT = 5          # runs listed per kind
+MARK_TEXT_LIMIT = 120       # characters kept of one run
+
+
+def _mark_text(text: str) -> str:
+    text = MARK_TAG_RE.sub("", text)
+    text = re.sub(r"<<pg\. [^<>\s]{1,24}>>", " ", text)
+    text = " ".join(text.split())
+    return text if len(text) <= MARK_TEXT_LIMIT else text[:MARK_TEXT_LIMIT - 1] + "…"
+
+
+def marks_in_span(raw: str, start: int, end: int) -> Optional[Dict[str, List[str]]]:
+    """Which words of raw[start:end] the source prints struck through or underlined (`<s>` / `<u>` tokens of a library edition).
+    Returns {"struck": [...], "underlined": [...]} (a key only when it has a run) or None. A span that lies inside a run counts, even
+    when it holds no tag itself. Keep in lockstep with marksInSpan in review_viewer.html (shared vectors)."""
+    if "<" not in raw[:end]:
+        return None
+    open_at: Dict[str, int] = {}
+    found: Dict[str, List[str]] = {"s": [], "u": []}
+
+    def take(kind: str, a: int, b: int) -> None:
+        lo, hi = max(a, start), min(b, end)
+        if lo < hi:
+            t = _mark_text(raw[lo:hi])
+            if t:
+                found[kind].append(t)
+    for m in MARK_TAG_RE.finditer(raw, 0, end):
+        tag = m.group(0)
+        k = tag[2] if tag[1] == "/" else tag[1]
+        if tag[1] != "/":
+            open_at[k] = m.end()
+        elif k in open_at:
+            take(k, open_at.pop(k), m.start())
+    for k, a in open_at.items():
+        take(k, a, end)
+    out = {MARK_KINDS[k]: found[k][:MARK_RUN_LIMIT] for k in ("s", "u") if found[k]}
+    return out or None
+
+
+def marks_warning(marks_list: List[Dict[str, List[str]]]) -> Optional[str]:
+    """The sentence a verified quote gets when it includes marked text, or None."""
+    struck = [t for mk in marks_list for t in mk.get("struck", [])]
+    under = [t for mk in marks_list for t in mk.get("underlined", [])]
+    parts = []
+    if struck:
+        parts.append("text the source prints struck through (deleted): " + "; ".join(f"“{t}”" for t in struck))
+    if under:
+        parts.append("text the source prints underlined (added): " + "; ".join(f"“{t}”" for t in under))
+    if not parts:
+        return None
+    return ("This passage includes " + " and ".join(parts) + ". The words verify as printed, but a quotation should say so; "
+            "struck words are not current text.")
 
 
 @dataclass
@@ -782,6 +847,19 @@ def run(proposals: Dict[str, Any], workdir: Path, max_gap: int,
             status, failure_reason = "anchored", None
         by_status[status] += 1
 
+        anchors_out = []
+        if source_key in docs:
+            for a in anchors:
+                d = dict(vars(a))
+                mk = marks_in_span(docs[source_key].raw, a.start, a.end)
+                if mk:
+                    d["marks"] = mk
+                anchors_out.append(d)
+            note = marks_warning([d["marks"] for d in anchors_out if "marks" in d])
+            if note:
+                cite_warnings.append({"id": cid, "code": "quote_includes_marked_text", "detail": note})
+        else:
+            anchors_out = [vars(a) for a in anchors]
         entry: Dict[str, Any] = {
             "id": cid,
             "source": source_key,
@@ -790,7 +868,7 @@ def run(proposals: Dict[str, Any], workdir: Path, max_gap: int,
                             if memo_anchor else None),
             "proposition": c["proposition"],
             "support_type": c["support_type"],
-            "anchors": [vars(a) for a in anchors],
+            "anchors": anchors_out,
             "status": status,
             # Review-binding hash: verdicts in review.json bind to this value,
             # so a verdict goes stale when the cite or proposition changes.

@@ -600,3 +600,60 @@ class TestOriginalProvenance:
         assert code == 0, err
         assert "render_hint" not in cites["sources"]["cl-12345"]
         assert any(w["code"] == "render_hint_invalid" for w in report["warnings"])
+
+
+# ---------------------------------------------------------------------------
+# Printed underlining / strike-through (a library edition's <u> <s> tokens)
+# ---------------------------------------------------------------------------
+
+class TestMarkedText:
+    def test_marks_vectors(self, va):
+        import json
+        from pathlib import Path
+        data = json.loads((Path(__file__).parent / "normalization_vectors.json").read_text(encoding="utf-8"))
+        for v in data["marks_vectors"]:
+            assert va.marks_in_span(v["raw"], v["start"], v["end"]) == v["expected"], v["name"]
+        w = data["marks_warning_vector"]
+        assert va.marks_warning([a["marks"] for a in w["anchors"] if "marks" in a]) == w["expected"]
+
+    def _run(self, va, tmp_path, source, quote, memo="The board shall [not] renew the license."):
+        (tmp_path / "memo.md").write_text(memo, encoding="utf-8")
+        (tmp_path / "src.md").write_text(source, encoding="utf-8")
+        proposals = {
+            "memo": {"path": "memo.md"},
+            "sources": {"s1": {"type": "document", "path": "src.md", "title": "Bill"}},
+            "citations": [{"id": "c001", "source": "s1", "cite_text": "The board shall [not] renew the license",
+                           "proposition": "the board may not renew", "support_type": "quotation",
+                           "anchors_proposed": [{"quote": quote}]}]}
+        return va.run(proposals, tmp_path, 2000, None)
+
+    def test_a_quote_of_struck_text_verifies_but_never_silently(self, va, tmp_path):
+        cites, report = self._run(va, tmp_path, "The board shall [<s>not</s>] renew the license.",
+                                  "The board shall [not] renew the license")
+        c = cites["citations"][0]
+        assert c["status"] == "anchored" and c["anchors"][0]["match"] == "normalized"
+        assert c["anchors"][0]["marks"] == {"struck": ["not"]}
+        w = [x for x in report["warnings"] if x["code"] == "quote_includes_marked_text"]
+        assert len(w) == 1 and "struck through (deleted)" in w[0]["detail"] and "“not”" in w[0]["detail"]
+
+    def test_underlined_text_is_flagged_as_added(self, va, tmp_path):
+        cites, report = self._run(va, tmp_path, "The board shall <u>not</u> renew the license.", "The board shall not renew the license")
+        assert cites["citations"][0]["anchors"][0]["marks"] == {"underlined": ["not"]}
+        assert any("underlined (added)" in x["detail"] for x in report["warnings"])
+
+    def test_a_quote_inside_a_run_with_no_tag_of_its_own_is_flagged(self, va, tmp_path):
+        cites, report = self._run(va, tmp_path, "A <s>board shall not renew the license at all</s> here.", "shall not renew")
+        assert cites["citations"][0]["anchors"][0]["marks"] == {"struck": ["shall not renew"]}
+
+    def test_plain_text_has_no_marks_field_and_no_warning(self, va, tmp_path):
+        cites, report = self._run(va, tmp_path, "The board shall not renew the license.", "The board shall not renew the license")
+        assert "marks" not in cites["citations"][0]["anchors"][0]
+        assert not [x for x in report["warnings"] if x["code"] == "quote_includes_marked_text"]
+
+    def test_a_quote_across_a_lettered_page_marker_does_not_verify_yet(self, va, tmp_path):
+        """PAGE_MARKER_RE is digits only: <<pg. S5>> stays content, so a quote across it fails (a false 'not found', never a false
+        'verified'). It must change, here and in the viewer, before a lettered edition reaches cite-check."""
+        cites, report = self._run(va, tmp_path, "The board shall <<pg. S5>> renew the license.", "The board shall renew the license")
+        assert cites["citations"][0]["status"] == "anchor_failed"
+        cites, report = self._run(va, tmp_path, "The board shall <<pg. 5>> renew the license.", "The board shall renew the license")
+        assert cites["citations"][0]["status"] == "anchored"

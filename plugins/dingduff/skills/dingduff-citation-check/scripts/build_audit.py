@@ -84,7 +84,10 @@ def anchored_label(citation: Dict[str, Any]) -> str:
         # only cosmetic differences (punctuation/spacing/line breaks/quote
         # marks). Keep these strings in lockstep with the viewer's anchoredLabel.
         matches = {a.get("match") for a in citation.get("anchors", [])}
-        return "✓ Verbatim" if matches == {"exact"} else "✓ Verbatim (formatting differs)"
+        label = "✓ Verbatim" if matches == {"exact"} else "✓ Verbatim (formatting differs)"
+        if any(a.get("marks") for a in citation.get("anchors", [])):
+            label += " ⚠ includes struck or underlined text"     # lockstep with the viewer's anchoredLabel
+        return label
     if status == "no_quote_claimed":
         return "— no quote claimed"
     reason = citation.get("failure_reason") or "failed"
