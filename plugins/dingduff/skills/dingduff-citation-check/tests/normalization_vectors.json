@@ -250,6 +250,132 @@
       "name": "footnote_mark_then_page_marker",
       "input": "the end.[^3]<<pg. 12>> Next sentence",
       "expected": "the end. Next sentence"
+    },
+    {
+      "name": "mark_tags_are_not_words",
+      "input": "the <u>Legislature</u> shall <s>not</s> act",
+      "expected": "the Legislature shall not act"
+    },
+    {
+      "name": "mark_tag_inside_a_word",
+      "input": "Legislatur<u>e</u> acts",
+      "expected": "Legislature acts"
+    },
+    {
+      "name": "mark_tag_beside_a_page_marker",
+      "input": "shall <u>act<<pg. 7>></u> now",
+      "expected": "shall act now"
+    },
+    {
+      "name": "other_angle_brackets_are_content",
+      "input": "if a < b and <b>c</b> > d",
+      "expected": "if a < b and <b>c</b> > d"
     }
-  ]
+  ],
+  "marks_vectors": [
+    {
+      "name": "plain_text_has_no_marks",
+      "raw": "The board shall renew.",
+      "start": 4,
+      "end": 10,
+      "expected": null
+    },
+    {
+      "name": "struck_word_inside_brackets",
+      "raw": "The board shall [<s>not</s>] renew the license",
+      "start": 0,
+      "end": 46,
+      "expected": {
+        "struck": [
+          "not"
+        ]
+      }
+    },
+    {
+      "name": "span_inside_a_struck_run",
+      "raw": "a <s>deleted words here</s> b",
+      "start": 5,
+      "end": 12,
+      "expected": {
+        "struck": [
+          "deleted"
+        ]
+      }
+    },
+    {
+      "name": "underlined_run_clipped_to_the_span",
+      "raw": "The <u>Legislature shall</u> act",
+      "start": 0,
+      "end": 19,
+      "expected": {
+        "underlined": [
+          "Legislature"
+        ]
+      }
+    },
+    {
+      "name": "struck_inside_underlined_both",
+      "raw": "A <u>new <s>old</s> bill</u> now",
+      "start": 0,
+      "end": 31,
+      "expected": {
+        "struck": [
+          "old"
+        ],
+        "underlined": [
+          "new old bill"
+        ]
+      }
+    },
+    {
+      "name": "span_before_the_run_is_clear",
+      "raw": "a b <s>c</s>",
+      "start": 0,
+      "end": 3,
+      "expected": null
+    },
+    {
+      "name": "run_continues_past_the_span_end",
+      "raw": "a <s>one two three</s> b",
+      "start": 2,
+      "end": 12,
+      "expected": {
+        "struck": [
+          "one two"
+        ]
+      }
+    },
+    {
+      "name": "page_marker_inside_the_span_is_not_text",
+      "raw": "<u>one</u> <<pg. 4>> <u>two</u>",
+      "start": 0,
+      "end": 31,
+      "expected": {
+        "underlined": [
+          "one",
+          "two"
+        ]
+      }
+    }
+  ],
+  "marks_warning_vector": {
+    "anchors": [
+      {
+        "marks": {
+          "struck": [
+            "not"
+          ]
+        }
+      },
+      {
+        "marks": {
+          "underlined": [
+            "new"
+          ]
+        }
+      },
+      {}
+    ],
+    "expected": "This passage includes text the source prints struck through (deleted): “not” and text the source prints underlined (added): “new”. The words verify as printed, but a quotation should say so; struck words are not current text."
+  }
 }

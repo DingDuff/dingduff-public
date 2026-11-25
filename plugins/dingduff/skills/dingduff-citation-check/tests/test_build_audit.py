@@ -182,5 +182,7 @@ class TestAuditLog:
         assert ba.anchored_label({"status": "anchored",
                                   "anchors": [{"match": "exact"}, {"match": "normalized"}]}
                                  ) == "✓ Verbatim (formatting differs)"
+        assert ba.anchored_label({"status": "anchored", "anchors": [{"match": "normalized", "marks": {"struck": ["not"]}}]}
+                                 ) == "✓ Verbatim (formatting differs) ⚠ includes struck or underlined text"
         assert ba.anchored_label({"status": "anchor_failed",
                                   "failure_reason": "source_missing"}) == "— source missing"

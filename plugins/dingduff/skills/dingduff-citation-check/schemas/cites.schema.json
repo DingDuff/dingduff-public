@@ -86,7 +86,16 @@
                 "quote": { "type": "string", "description": "The raw slice source_raw[start:end] — exactly what a viewer should highlight or re-locate." },
                 "start": { "type": "integer", "minimum": 0 },
                 "end": { "type": "integer", "minimum": 0 },
-                "match": { "enum": ["exact", "normalized"] }
+                "match": { "enum": ["exact", "normalized"] },
+                "marks": {
+                  "type": "object",
+                  "description": "Present only when the matched span meets text the source prints struck through (deleted) or underlined (added): the words of each run, clipped to the span. The words still verify as printed; a viewer must say so.",
+                  "properties": {
+                    "struck": { "type": "array", "items": { "type": "string" } },
+                    "underlined": { "type": "array", "items": { "type": "string" } }
+                  },
+                  "additionalProperties": false
+                }
               }
             }
           },

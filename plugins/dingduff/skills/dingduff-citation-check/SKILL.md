@@ -1,6 +1,6 @@
 ---
 name: dingduff-citation-check
-description: "Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html that can display supplied PDF/Word sources in native format with the verified highlights overlaid) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.5.9)"
+description: "Verify every citation in a drafted legal memo (Markdown, Word, or Google Docs) against stored opinions and statutes plus any other source documents the attorney supplies (a Restatement section, an off-CourtListener case, an opposing brief, a factual PDF). Use after drafting a memo when the user asks to cite-check, citecheck, verify citations, verify quotes, check cites, or validate authorities. Produces cites.json, quality-checks the anchors for substance, and opens the interactive attorney review panel (or a standalone review.html that can display supplied PDF/Word sources in native format with the verified highlights overlaid) for the attorney to review. NOTE: a full cite-check reads every cited source and enumerates every citation instance, so it is context-heavy — run it in a subagent, delegating the cite-check task rather than loading the full skill and every source into the main context window. (v2.5.10)"
 license: "DingDuff Skills License 1.0 — LICENSE.md has complete terms"
 ---
 
@@ -345,7 +345,11 @@ warnings. Then explicitly call out, in prose:
 - any verifier warnings (`multiple_matches`, `short_quote`,
   `match_in_header`, `cluster_id_mismatch`), and — because it silently
   downgrades a PDF/Word source to text — any `original_missing` /
-  `original_bad_media_type` warning.
+  `original_bad_media_type` warning,
+- every `quote_includes_marked_text` warning: the quoted words verify as
+  printed, but the source prints them struck through (deleted) or underlined
+  (added), as in bill and amendment text. Say so in the summary, and never
+  present struck words as current law.
 
 Explain next steps: review each citation in the panel (j/k to move, 1–3 for
 verdicts), then click "Send review to Claude" (panel) or "Export
